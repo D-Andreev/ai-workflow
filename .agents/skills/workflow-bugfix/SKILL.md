@@ -25,10 +25,10 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 2. **Root cause** — trace to the actual cause, not the symptom. Note where the defect was introduced if discoverable.
 3. **Regression test first** — add/adjust a test that fails because of the bug (red).
 4. **Minimal fix** — apply the smallest change that addresses the root cause and makes the test pass (green). No drive-by refactors.
-5. **Run tests:**
-   - `make test-unit` (required)
-   - `make lint` if you touched multiple packages
-   - `make test-e2e` only if the defect needs integration coverage
+5. **Run tests** using commands from PROJECT.md:
+   - Unit tests (required)
+   - Lint/format checks if you touched many files or modules
+   - Integration or end-to-end tests only if the defect needs that coverage
 6. Fix failures before completing.
 7. Write `.cursor/workflows/artifacts/implement-handoff.md` (template below — same artifact path the rest of the pipeline reads).
 8. Update state: `status` → `awaiting_human`, history `phase_completed`.
@@ -59,8 +59,8 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 - Test added/updated: {path} — fails before fix, passes after
 
 ## Test results
-- `make test-unit`: PASS/FAIL — {details if fail}
-- `make lint`: PASS/SKIP/FAIL
+- {command from PROJECT.md}: PASS/FAIL — {details if fail}
+- Lint/format: PASS/SKIP/FAIL — {command if run}
 - Other: ...
 
 ## Acceptance criteria status
@@ -79,7 +79,7 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 Present the handoff summary and **name the next step (verify)**. Then offer both options:
 
 - **Approve here:** reply `approve`, or
-- **Open a new agent and run `continue workflow`** — approve is assumed and verify is triggered automatically.
+- **Open a new agent and run `/continue-workflow`** — approve is assumed and verify is triggered automatically.
 
 Use `refine: <feedback>` to iterate on the fix instead.
 

@@ -34,7 +34,7 @@ Determine mode from state and user message:
 | User message is answers to numbered questions (not `approve`) | **grade** |
 | Failed last attempt; user says `ready` or `retake` | **generate** (new attempt) |
 | Failed last attempt; user says `continue` or `take the shame` | **shame** (proceed unpassed) |
-| Passed; user sends `approve` | Handled by **workflow-continue** → retro |
+| Passed; user sends `approve` | Handled by **continue-workflow** → retro |
 
 ## Mode: generate
 

@@ -18,12 +18,12 @@ Build the feature per approved `requirements.md`.
 
 ## Process
 
-1. Plan approach — match existing patterns in `src/`.
+1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides).
 2. Implement the smallest correct change.
-3. Run tests:
-   - `make test-unit` (required)
-   - `make lint` if you touched multiple packages
-   - `make test-e2e` only if requirements call for integration coverage
+3. Run tests using commands documented in PROJECT.md:
+   - Unit tests (required)
+   - Lint/format checks if you touched many files or modules
+   - Integration or end-to-end tests only if requirements call for that coverage
 4. Fix failures before completing.
 5. Write `.cursor/workflows/artifacts/implement-handoff.md` (template below).
 6. Update state: `status` → `awaiting_human`, history `phase_completed`.
@@ -42,8 +42,8 @@ Build the feature per approved `requirements.md`.
 | ... | ... |
 
 ## Test results
-- `make test-unit`: PASS/FAIL — {details if fail}
-- `make lint`: PASS/SKIP/FAIL
+- {command from PROJECT.md}: PASS/FAIL — {details if fail}
+- Lint/format: PASS/SKIP/FAIL — {command if run}
 - Other: ...
 
 ## Acceptance criteria status
@@ -64,5 +64,5 @@ Present handoff summary. Wait for `approve` or `refine: <feedback>`.
 ## Rules
 
 - Do not expand scope beyond requirements.md.
-- Follow Go and project conventions (GORM, Lambda handlers, etc.).
+- Follow project conventions from PROJECT.md and existing code (naming, patterns, tooling).
 - Prefer focused diffs; no drive-by refactors.

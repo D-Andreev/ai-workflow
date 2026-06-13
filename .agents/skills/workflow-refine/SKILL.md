@@ -22,7 +22,7 @@ Address human feedback from an implement or verify review gate.
 
 1. Read feedback — only change what was requested.
 2. Implement fixes.
-3. Re-run `make test-unit` (and `make lint` if needed).
+3. Re-run relevant test and lint/format commands from PROJECT.md.
 4. Update `implement-handoff.md` with a **Refinement log** section:
 
 ```markdown

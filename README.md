@@ -1,8 +1,18 @@
-# Dev Pipeline (Cursor CLI)
+# Dev Pipeline 
 
-Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` skill.
+Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` and `continue-workflow` skills.
 
 > **Note:** I'm using Cursor CLI, so all of these live inside the `.cursor/` folder in my projects. If you're using something else like Claude, you can use the content of these and adapt them for your AI tool.
+
+## Skills
+
+Copy `.agents/skills/` into `.cursor/skills/` in your project (and `.agents/workflows/` or `workflows/` into `.cursor/workflows/`).
+
+| Skill | Invoke | Purpose |
+|-------|--------|---------|
+| `dev-pipeline` | `/dev-pipeline` | Start, init, status, and orchestrate the pipeline |
+| `continue-workflow` | `/continue-workflow` | Resume at a human gate in a **new chat** (multi-chat flow) |
+| `workflow-*` | (internal) | Phase work — launched by the orchestrator skills above |
 
 ## First-time setup (per repo)
 
@@ -12,7 +22,7 @@ These skills are designed to be reused across projects. When dropping them into 
 /dev-pipeline init
 ```
 
-This inspects the repo and writes `.cursor/workflows/PROJECT.md` (essential purpose, features, stack, commands, source layout). Every pipeline phase reads it. Use `/dev-pipeline init refresh` to regenerate after major changes.
+This inspects the repo and writes `.cursor/workflows/PROJECT.md` (essential purpose, features, stack, commands, source layout). Every pipeline phase reads it.
 
 ## Quick start
 
@@ -34,18 +44,18 @@ This inspects the repo and writes `.cursor/workflows/PROJECT.md` (essential purp
 |------|-------|
 | Human-readable status | `.cursor/workflows/STATUS.md` (only while a pipeline is active) |
 | Machine state | `.cursor/workflows/state.json` (only while a pipeline is active) |
-| In chat | `/dev-pipeline status` or `continue workflow` |
+| In chat | `/dev-pipeline status` or `/continue-workflow` |
 
 Open `STATUS.md` in your editor and refresh after each agent turn (while a pipeline is active).
 
-### Multi-chat with continue (recommended)
+### Multi-chat with `/continue-workflow` (recommended)
 
 Long single-chat runs can stall the CLI. Prefer:
 
 1. **Start** — `/dev-pipeline start "<task>"` in one chat
-2. **Continue** — new agent: `continue workflow`
+2. **Continue** — new agent: `/continue-workflow`
 
-Each step ends by naming the next step and offering two options: `approve` in the same chat, or open a **new agent** and run `continue workflow`. Opening a new agent and running continue **assumes approve** and triggers the next state — no separate approve needed. Continue reads `state.json`, advances the gate, and launches the next phase skill — then stops. Artifacts + state carry context between chats. Gates that need input (clarify, comprehension, retro questions) wait for your answer instead of auto-advancing.
+Each step ends by naming the next step and offering two options: `approve` in the same chat, or open a **new agent** and run `/continue-workflow`. Opening a new agent and invoking the continue skill **assumes approve** and triggers the next state — no separate approve needed. Continue reads `state.json`, advances the gate, and launches the next phase skill — then stops. Artifacts + state carry context between chats. Gates that need input (clarify, comprehension, retro questions) wait for your answer instead of auto-advancing.
 
 ## Phases
 
@@ -127,7 +137,12 @@ flowchart TD
 | `abort` | Cancel pipeline |
 | `/dev-pipeline status` | Show current state |
 | `/dev-pipeline show artifacts` | List artifact files |
-| `continue workflow` | New agent: resume at gate — **approve assumed**, triggers next state |
+| `/continue-workflow` | New agent: resume at gate — **approve assumed**, triggers next state |
+| `/continue-workflow approve` | Explicit approve + run next phase |
+| `/continue-workflow refine: <feedback>` | Go to refine phase with your notes |
+| `/continue-workflow reject: <reason>` | Back to build phase from verify |
+| `/continue-workflow abort` | Cancel pipeline |
+| `/dev-pipeline continue` | Alias for `/continue-workflow` |
 
 During **comprehension**, answer numbered questions in chat (not `approve`). After a fail, review the code and reply `ready` for a retake.
 

@@ -1,26 +1,49 @@
 ---
-name: workflow-continue
+name: continue-workflow
 description: >-
-  Resume the dev pipeline at a human gate or after a phase finished in another
-  chat. Processes approve/refine/reject, updates state, and runs the next phase
-  skill. Use when the user says continue workflow, /dev-pipeline continue, or
-  opens a new chat after a phase skill completed.
+  Resume the dev pipeline at a human gate after a phase finished in another chat.
+  Processes approve/refine/reject, updates state, and runs the next phase skill.
+  Use when the user runs /continue-workflow, /dev-pipeline continue, or opens a
+  new chat to advance the pipeline.
 disable-model-invocation: true
 ---
 
-# Workflow: Continue
+# Continue Workflow
 
-Bridge between **isolated phase chats**. Use this when a phase skill (implement, verify, etc.) finished in another session and you need to review the gate or advance the pipeline.
+Bridge between **isolated phase chats**. Invoke this skill in a **new agent** when a phase skill (implement, verify, etc.) finished in another session and you need to review the gate or advance the pipeline.
 
 Phase skills do the work. **This skill orchestrates** — it does not replace them.
+
+## Commands
+
+Parse the user's message:
+
+| Input | Action |
+|-------|--------|
+| `/continue-workflow` | Resume at gate — **assumes approve** on advance gates, runs next phase |
+| `/continue-workflow approve` | Explicit approve + run next phase in one turn |
+| `/continue-workflow refine: <text>` | Set feedback, go to refine phase |
+| `/continue-workflow reject: <text>` | Back to build phase from verify gate |
+| `/continue-workflow re-clarify: <text>` | Back to clarify, reset requirements approval |
+| `/continue-workflow abort` | Cancel pipeline |
+| `/dev-pipeline continue` | Alias for `/continue-workflow` |
+| `/dev-pipeline continue approve` | Alias for `/continue-workflow approve` |
+| `approve requirements` | At clarify gate only — advance to build phase |
+| `approve` | Advance past current human gate (when invoked with continue) |
+| `refine: <text>` | Same as `/continue-workflow refine:` |
+| `reject: <text>` | Same as `/continue-workflow reject:` |
+| `re-clarify: <text>` | Same as `/continue-workflow re-clarify:` |
+| `abort` | Same as `/continue-workflow abort` |
+
+If the user sends numbered comprehension or retro answers without a slash command, route to the appropriate phase handler (see Steps 5–6).
 
 ## When to use
 
 | Situation | Action |
 |-----------|--------|
-| Phase skill finished; `status` is `awaiting_human` | Run continue — **approve is assumed** on advance gates, runs the next phase |
-| New chat; you already know you approve | `continue workflow` (approve assumed) or `continue workflow approve` |
-| You want a different action | Send `refine:` / `reject:` / `re-clarify:` / `abort` with continue |
+| Phase skill finished; `status` is `awaiting_human` | Run `/continue-workflow` — **approve is assumed** on advance gates |
+| New chat; you already know you approve | `/continue-workflow` or `/continue-workflow approve` |
+| You want a different action | `/continue-workflow refine:` / `reject:` / `re-clarify:` / `abort` |
 | Gate needs input (clarify, comprehension, retro questions) | Continue presents the gate and waits — no auto-approve |
 | Stuck on `ai_running` from a crashed session | Continue with recovery (see below) |
 | No active pipeline (`status: idle`) | Tell user to `/dev-pipeline start` |
@@ -49,7 +72,7 @@ Read `state.json`. Handle:
 
 ### Step 2 — Implicit approve vs. present gate
 
-A fresh `continue workflow` (or `/dev-pipeline continue`) with **no explicit command** means **approve is assumed**: advance the gate and run the next phase. This is the normal multi-agent flow — each step ends, the user opens a new agent, runs continue, and the next state triggers.
+A fresh `/continue-workflow` (or `/dev-pipeline continue`) with **no explicit command** means **approve is assumed**: advance the gate and run the next phase. This is the normal multi-agent flow — each step ends, the user opens a new agent, invokes this skill, and the next state triggers.
 
 **Apply implicit approve** when the current gate is a simple advance gate. Treat it exactly like an explicit `approve` — go to Step 3 with command `approve`, then Step 4 (run next phase):
 
@@ -107,7 +130,7 @@ After processing an advance command:
 2. Rewrite `STATUS.md`
 3. **Immediately follow the next phase skill** (read its SKILL.md and execute)
 4. When that phase completes:
-   - **Normal phases:** set `status: awaiting_human`, append `phase_completed`, update STATUS.md, present the human gate — always **name the next step** and offer both options (`approve` here, or open a new agent and `continue workflow` to assume approve) — **stop**
+   - **Normal phases:** set `status: awaiting_human`, append `phase_completed`, update STATUS.md, present the human gate — always **name the next step** and offer both options (`approve` here, or open a new agent and `/continue-workflow` to assume approve) — **stop**
    - **Summarize phase:** follows workflow-summarize close steps (delete artifacts, state.json, STATUS.md) — **stop**
 
 Do **not** chain multiple phases in one turn. One gate command → one phase execution → stop.
@@ -153,7 +176,7 @@ If user opens continue after retro questions but before retro.md exists, and the
 User opens a **new agent** after implement finished elsewhere:
 
 ```
-continue workflow
+/continue-workflow
 ```
 
 Approve is assumed: continue summarizes the implement handoff, advances the gate, runs verify, then stops at the verify gate (naming the next step).
@@ -161,16 +184,14 @@ Approve is assumed: continue summarizes the implement handoff, advances the gate
 Explicit one-shot is equivalent:
 
 ```
-/dev-pipeline continue approve
+/continue-workflow approve
 ```
 
 User wants refine instead:
 
 ```
-refine: remove unused field from DTO
+/continue-workflow refine: remove unused field from DTO
 ```
-
-Continue records feedback, runs refine phase, stops at new gate.
 
 ## Run a single phase in isolation (no continue)
 
@@ -180,7 +201,7 @@ To run **only** one phase in a fresh chat without orchestration:
 Run dev-pipeline implement phase only. Follow .cursor/skills/workflow-implement/SKILL.md.
 ```
 
-When it stops at `awaiting_human`, **open a new chat** and run continue.
+When it stops at `awaiting_human`, **open a new chat** and run `/continue-workflow`.
 
 Same pattern for bugfix, verify, ai_review, comprehension, clarify, refine, retro — use the matching `workflow-*` skill.
 

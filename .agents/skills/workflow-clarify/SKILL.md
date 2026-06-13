@@ -69,6 +69,6 @@ Gather requirements before implementation. **No code changes. No test runs. No f
 ## Hard rules
 
 - Never write or modify application source code.
-- Never run `make test`, migrations, or deploy commands.
+- Never run test, lint, migration, or deploy commands.
 - Only write to `.cursor/workflows/artifacts/requirements.md` and workflow state files.
 - If the task is trivial and fully specified, state that explicitly, produce `requirements.md`, and ask for `approve requirements` with zero questions.

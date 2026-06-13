@@ -27,12 +27,12 @@ Independent verification with fresh eyes. Assume you have **not** seen the imple
    - Happy path
    - Edge cases named in requirements
    - Error / failure paths
-   - Regression risks (ingest, analytics, auth, notifications as relevant)
+   - Regression risks relevant to this project's domain (from requirements and PROJECT.md)
 3. Execute verification:
-   - Run `make test-unit`
-   - Run targeted tests: `go test ./path/to/pkg -run TestName -v`
-   - Run `make test-e2e` if the change touches API contracts or cross-service flows
-   - Manually trace critical paths in code if tests are insufficient
+   - Run unit tests using commands from PROJECT.md
+   - Run targeted tests for changed areas (narrow scope to what the change touched)
+   - Run integration or end-to-end tests if the change touches API contracts, shared interfaces, or cross-module flows
+   - Manually trace critical paths in code if automated tests are insufficient
 4. Write `.cursor/workflows/artifacts/verify-report.md` (template below).
 5. Update state: `status` → `awaiting_human`, history `phase_completed`.
 
@@ -70,6 +70,6 @@ Present verdict and top findings. Wait for `approve`, `refine:`, or `reject:`.
 
 ## Rules
 
-- Be skeptical — look for missing edge cases, especially around daily snapshots, job active/inactive logic, and JWT-protected paths.
+- Be skeptical — look for missing edge cases called out in requirements, plus auth boundaries, state transitions, validation limits, and error paths.
 - Do not fix code in verify — report issues; refine/implement handles fixes.
 - If verdict is FAIL, set recommendation to `refine` or `reject` clearly.

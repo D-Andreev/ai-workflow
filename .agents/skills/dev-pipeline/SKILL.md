@@ -38,9 +38,8 @@ Parse the user's message:
 | `/dev-pipeline start-bugfix` | New bug-fix pipeline from `artifacts/task.md` |
 | `/dev-pipeline status` | Show STATUS.md if present; else report no active pipeline |
 | `/dev-pipeline show artifacts` | List artifact files and last modified |
-| `/dev-pipeline continue` | Resume at gate — **assumes approve** for advance gates, runs next phase (see **workflow-continue**) |
-| `/dev-pipeline continue approve` | Explicit approve + run next phase in one turn |
-| `continue workflow` | Same as `/dev-pipeline continue` — opening a new agent and running this **assumes approve** and triggers the next state |
+| `/dev-pipeline continue` | Alias for `/continue-workflow` (see **continue-workflow** skill) |
+| `/dev-pipeline continue approve` | Alias for `/continue-workflow approve` |
 | `approve requirements` | clarify → implement (only if `requirements_approved` pending) |
 | `approve` | Advance past current human gate |
 | `refine: <text>` | Set feedback, go to refine phase |
@@ -113,9 +112,9 @@ At each `awaiting_human` stop, show:
 5. **Next step** — always name the phase that runs after approval (e.g. "Next step: verify")
 6. **How to proceed** — always present both options:
    - **Approve here:** send `approve` (or `approve requirements` at the clarify gate) in this chat, or
-   - **Open a new agent and run `continue workflow`** — this **assumes approve** and triggers the next state automatically.
+   - **Open a new agent and run `/continue-workflow`** — this **assumes approve** and triggers the next state automatically.
 
-Do not start the next phase in the same turn unless the user explicitly sent an advance command. A fresh `continue workflow` in a new agent is itself an implicit advance — see the **workflow-continue** skill. Gates that need real input (clarify requirements, comprehension quiz, retro questions) are never auto-approved.
+Do not start the next phase in the same turn unless the user explicitly sent an advance command. A fresh `/continue-workflow` in a new agent is itself an implicit advance — see the **continue-workflow** skill. Gates that need real input (clarify requirements, comprehension quiz, retro questions) are never auto-approved.
 
 ## STATUS.md template
 
@@ -184,16 +183,16 @@ Rewrite on every state change:
 | comprehension | workflow-comprehension |
 | retro | workflow-retro |
 | summarize | workflow-summarize |
-| continue / human gate | workflow-continue |
+| continue / human gate | continue-workflow |
 
 ## Multi-chat pattern (recommended)
 
-Run each **phase skill** in its own chat. When it finishes (`status: awaiting_human`), open a **new chat** and invoke **workflow-continue** (or `/dev-pipeline continue`). Opening a new agent and running continue **assumes approve** on advance gates — it launches the next phase skill in that turn, then stops. To take a different action, send `refine:` / `reject:` / `re-clarify:` instead.
+Run each **phase skill** in its own chat. When it finishes (`status: awaiting_human`), open a **new chat** and invoke **`/continue-workflow`**. Opening a new agent and running continue **assumes approve** on advance gates — it launches the next phase skill in that turn, then stops. To take a different action, use `/continue-workflow refine:` / `reject:` / `re-clarify:` instead.
 
 Example:
 
 1. Chat A — `workflow-implement` → stops at gate, names next step (verify)
-2. Chat B — `continue workflow` → approve assumed → runs verify → stops at gate, names next step (ai_review)
-3. Chat C — `continue workflow` → approve assumed → runs ai_review → stops at gate
+2. Chat B — `/continue-workflow` → approve assumed → runs verify → stops at gate, names next step (ai_review)
+3. Chat C — `/continue-workflow` → approve assumed → runs ai_review → stops at gate
 
 This keeps context small while still using skills end-to-end. Gates needing input (clarify, comprehension, retro questions) still wait for your answer instead of auto-advancing.
