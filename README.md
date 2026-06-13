@@ -2,7 +2,7 @@
 
 Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` skill.
 
-### I'm using Cursor CLI, so all of these live inside the `.cursor. folder in my projects. If you're using something else like claude you can use the content of these and make them work for your AI tool.
+> **Note:** I'm using Cursor CLI, so all of these live inside the `.cursor/` folder in my projects. If you're using something else like Claude, you can use the content of these and adapt them for your AI tool.
 
 ## First-time setup (per repo)
 
