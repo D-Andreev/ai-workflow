@@ -2,18 +2,47 @@
 
 Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` skill.
 
-> **Note:** I'm using Cursor CLI, so all of these live inside the `.cursor/` folder in my projects. If you're using another agent harness you can use the content of these and adapt them for your AI tool.
+## Installation
+
+Clone this repo once, then wire it into each project you work on. Skills are designed for **Cursor** (they live under `.cursor/`). If you use a different agent harness, the workflow content still applies — adapt paths, skill discovery, and invocation to match your tool.
+
+### Cursor (recommended): clone + symlink
+
+```bash
+cd /path/to/your-project
+mkdir -p .cursor/workflows/learnings
+ln -s ~/src/ai-workflow/skills .cursor/skills
+```
+
+Symlinking keeps every project on the same skill bundle. Pull updates in the clone and all linked projects pick them up.
+
+`workflow-init` (`/dev-pipeline init`) writes `.cursor/workflows/PROJECT.md` in the target repo. Pipeline runs create ephemeral files under `.cursor/workflows/artifacts/` and `.cursor/workflows/state.json`; `learnings/gotchas.md` is updated at the end of each run.
+
+### Copy instead of symlink
+
+If you prefer a frozen copy per project:
+
+```bash
+cp -r ~/src/ai-workflow/skills .cursor/skills
+mkdir -p .cursor/workflows/learnings
+```
+
+### Other agent harnesses
+
+These skills assume Cursor’s layout (`.cursor/skills/*/SKILL.md`, slash-command invocation, `disable-model-invocation` frontmatter). To use them elsewhere:
+
+- Map `skills/` to however your harness loads agent instructions
+- Map `.cursor/workflows/` to a durable + ephemeral artifact directory in your project
+- Replace `/dev-pipeline …` triggers with your harness’s equivalent (prompt prefix, slash command, or skill name)
+
+The state machine (`state.json`), routing table (`skills/dev-pipeline/state-schema.md`), and phase handoff markdown files are harness-agnostic — only discovery and invocation need adapting.
 
 ## Skills
-
-Copy `.agents/skills/` into `.cursor/skills/` in your project (and `workflows/` into `.cursor/workflows/`).
 
 | Skill | Invoke | Purpose |
 |-------|--------|---------|
 | `dev-pipeline` | `/dev-pipeline` | Start, init, status, continue, cleanup, and orchestrate the pipeline |
 | `workflow-*` | (internal) | Phase work — launched by the orchestrator |
-
-**Validate** (this repo): `./scripts/validate-workflow.sh`
 
 ## First-time setup (per repo)
 
@@ -234,12 +263,10 @@ PASS WITH NOTES
 | Wrong diff base | Restart with `--base <branch>` |
 | Comprehension too long for tiny change | Automatic **light** mode (≤3 files, ≤150 lines) |
 
-## Development (this repo)
+## Repo layout
 
-```bash
-./scripts/validate-workflow.sh   # lint skills, fixtures, routing SSOT
-```
-
-Schema: `.agents/skills/dev-pipeline/state.schema.json`  
-Example state: `.agents/fixtures/state-example-start.json`  
-Golden transitions: `.agents/fixtures/transitions.json`
+| Path | Purpose |
+|------|---------|
+| `skills/` | Skill definitions (symlink into `.cursor/skills/`) |
+| `fixtures/` | Example `state.json` and golden routing transitions |
+| `skills/dev-pipeline/state.schema.json` | JSON Schema for pipeline state |
