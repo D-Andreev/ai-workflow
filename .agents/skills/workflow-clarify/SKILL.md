@@ -19,12 +19,13 @@ Gather requirements before implementation. **No code changes. No test runs. No f
 
 ## Process
 
-1. Read all inputs.
+1. Read all inputs and any releveant code in the project that might be related to the ask.
 2. If requirements are already complete in `requirements.md` with an approval checkbox unchecked, summarize and ask if anything changed — do not re-ask answered questions.
-3. Ask **5–8 numbered questions** covering:
+3. Ask **5-20 numbered questions** covering (When feature score is big ask more quesations, if it's small - less):
    - **Scope** — what's in / out
    - **Behavior** — edge cases, error handling, backwards compatibility
    - **Acceptance criteria** — how we know it's done
+   - **Implementation details** - how will the implementation look like at a high level
    - **Tests** — unit vs e2e, scenarios to cover (implement and bugfix phases will use TDD red-green cycles for these)
    - **Constraints** — files/packages to touch or avoid, migrations, deploy impact
 4. Stop and wait for human answers. Do not proceed in the same turn.

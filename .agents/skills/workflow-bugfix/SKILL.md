@@ -82,7 +82,7 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 Present the handoff summary and **name the next step (verify)**. Then offer both options:
 
 - **Approve here:** reply `approve`, or
-- **Open a new agent and run `/continue-workflow`** — approve is assumed and verify is triggered automatically.
+- **Open a new agent and run `/dev-pipeline continue`** — approve is assumed and verify is triggered automatically.
 
 Use `refine: <feedback>` to iterate on the fix instead.
 

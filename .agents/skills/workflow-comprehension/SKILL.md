@@ -45,9 +45,9 @@ Determine mode from state and user message:
 | User message is answers to numbered questions (not `approve`) | **grade** |
 | Failed last attempt; user says `ready` or `retake` | **generate** (new attempt) |
 | User says `skip-comprehension` (aliases: `take the shame`) | **shame** (proceed unpassed) |
-| Passed; user sends `approve` | Handled by **continue-workflow** → retro |
+| Passed; user sends `approve` | Handled by **dev-pipeline continue** → retro |
 
-**Never** use bare `continue` — it collides with `/continue-workflow`.
+**Never** use bare `continue` — use `/dev-pipeline continue` explicitly.
 
 ## Mode: generate
 

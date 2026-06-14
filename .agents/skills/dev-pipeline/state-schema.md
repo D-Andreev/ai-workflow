@@ -92,7 +92,7 @@ Build phase name: `implement` when `mode: feature`, `bugfix` when `mode: bugfix`
 
 ## Routing table (single source of truth)
 
-Orchestrators (`dev-pipeline`, `continue-workflow`) **must not duplicate** this table elsewhere. Apply rows by matching `phase`, `status: awaiting_human`, and user command.
+Orchestrator (`dev-pipeline`) **must not duplicate** this table elsewhere. Apply rows by matching `phase`, `status: awaiting_human`, and user command.
 
 | phase | user command | preconditions | state changes | next phase | skill |
 |-------|--------------|---------------|---------------|------------|-------|
@@ -120,7 +120,7 @@ Orchestrators (`dev-pipeline`, `continue-workflow`) **must not duplicate** this 
 | any | `abort` | — | `status: cancelled`, `phase: done`, history `cancelled` | — | then **cleanup** (below) |
 | any | `/dev-pipeline cleanup` | cancelled or done, or orphaned files | history `cancelled` if needed | — | delete ephemeral files |
 
-**Implicit approve** (`/continue-workflow` with no command): treat as `approve` only for phases **not** listed under “no auto-approve” in continue-workflow skill.
+**Implicit approve** (`/dev-pipeline continue` with no command): treat as `approve` only for phases **not** listed under “no auto-approve” in dev-pipeline **Continue workflow** section.
 
 ### Lifecycle transitions (non-gate)
 

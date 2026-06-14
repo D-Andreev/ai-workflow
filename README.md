@@ -1,6 +1,6 @@
 # Dev Pipeline
 
-Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` and `continue-workflow` skills.
+Multi-phase development workflow with human review gates. Orchestrated by the `dev-pipeline` skill.
 
 > **Note:** I'm using Cursor CLI, so all of these live inside the `.cursor/` folder in my projects. If you're using another agent harness you can use the content of these and adapt them for your AI tool.
 
@@ -10,9 +10,8 @@ Copy `.agents/skills/` into `.cursor/skills/` in your project (and `workflows/` 
 
 | Skill | Invoke | Purpose |
 |-------|--------|---------|
-| `dev-pipeline` | `/dev-pipeline` | Start, init, status, cleanup, and orchestrate the pipeline |
-| `continue-workflow` | `/continue-workflow` | Resume at a human gate in a **new agent** (recommended multi-agent flow) |
-| `workflow-*` | (internal) | Phase work — launched by the orchestrator skills above |
+| `dev-pipeline` | `/dev-pipeline` | Start, init, status, continue, cleanup, and orchestrate the pipeline |
+| `workflow-*` | (internal) | Phase work — launched by the orchestrator |
 
 **Validate** (this repo): `./scripts/validate-workflow.sh`
 
@@ -34,7 +33,7 @@ flowchart TD
     q -->|New user-facing capability| feature["/dev-pipeline start \"...\""]
     q -->|Defect / regression| bugfix["/dev-pipeline start-bugfix \"...\""]
     q -->|First time in repo| init["/dev-pipeline init"]
-    q -->|Resume after a gate| cont["/continue-workflow"]
+    q -->|Resume after a gate| cont["/dev-pipeline continue"]
     q -->|Cancel or remove orphan files| clean["abort or /dev-pipeline cleanup"]
 
     feature --> mode_feature[mode: feature → implement phase]
@@ -46,7 +45,7 @@ flowchart TD
 | New feature | `/dev-pipeline start "<task>"` |
 | Bug fix | `/dev-pipeline start-bugfix "<task>"` |
 | Explicit diff base | `/dev-pipeline start "<task>" --base develop` |
-| Resume pipeline | `/continue-workflow` (new agent; approve assumed on advance gates) |
+| Resume pipeline | `/dev-pipeline continue` (new agent; approve assumed on advance gates) |
 | Cancel + delete ephemeral files | `abort` or `/dev-pipeline cleanup` |
 
 Both **feature** and **bugfix** run the same phases after clarify; only the build step differs.
@@ -68,16 +67,16 @@ Both **feature** and **bugfix** run the same phases after clarify; only the buil
 | Human-readable status | `.cursor/workflows/STATUS.md` (active pipeline only) |
 | Machine state | `.cursor/workflows/state.json` (JSON Schema in skill bundle) |
 | Routing rules | `.cursor/skills/dev-pipeline/state-schema.md` (single source of truth) |
-| In chat | `/dev-pipeline status` or `/continue-workflow` |
+| In chat | `/dev-pipeline status` or `/dev-pipeline continue` |
 
 Open `STATUS.md` in your editor and refresh after each agent turn.
 
-### Multi-agent flow with `/continue-workflow` (recommended)
+### Multi-agent flow with `/dev-pipeline continue` (recommended)
 
 1. **Start** — `/dev-pipeline start "<task>"` in one agent
-2. **Continue** — open a **new agent** and run `/continue-workflow`
+2. **Continue** — open a **new agent** and run `/dev-pipeline continue`
 
-At each gate, send the command for that step — usually `approve` to advance, or `refine:` (and at verify/ai_review, `reject:`) to iterate. **Recommended:** open a new agent for each phase; fresh context per step usually works better than running the whole pipeline in one chat. On advance gates, bare `/continue-workflow` assumes approve and runs the next phase. Gates that need your input (**clarify**, **comprehension quiz**, **retro questions**) wait for answers — no auto-advance. To stay in the same agent, send the gate command directly.
+At each gate, send the command for that step — usually `approve` to advance, or `refine:` (and at verify/ai_review, `reject:`) to iterate. **Recommended:** open a new agent after each phase; fresh context per step usually works better than running the whole pipeline in one chat. On advance gates, bare `/dev-pipeline continue` assumes approve and runs the next phase. Gates that need your input (**clarify**, **comprehension quiz**, **retro questions**) wait for answers — no auto-advance. To stay in the same agent, send the gate command directly.
 
 ## Phases
 
@@ -157,7 +156,7 @@ flowchart TD
 | `skip-comprehension` | Skip quiz unpassed (recorded; alias: `take the shame`) |
 | `abort` | Cancel and **delete ephemeral files** |
 | `/dev-pipeline cleanup` | Delete orphaned artifacts/state/STATUS |
-| `/continue-workflow` | New agent: resume — approve assumed on advance gates |
+| `/dev-pipeline continue` | New agent: resume — approve assumed on advance gates |
 
 Full routing: `.cursor/skills/dev-pipeline/state-schema.md`
 
@@ -169,7 +168,7 @@ Full routing: `.cursor/skills/dev-pipeline/state-schema.md`
 
 ### Retro gate (two turns)
 
-1. **Turn 1:** Agent asks 3–5 reflective questions → **stop**. Reply with your answers (same or new chat with `/continue-workflow` + answers).
+1. **Turn 1:** Agent asks 3–5 reflective questions → **stop**. Reply with your answers (same or new chat with `/dev-pipeline continue` + answers).
 2. **Turn 2:** Agent writes `retro.md` → reply **`approve`** → summarize runs automatically.
 
 ## State and diffs
@@ -200,7 +199,7 @@ During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summ
 **Task:** `/dev-pipeline start "Add retry logic to notification emails"`
 
 1. **clarify** — Agent asks scope/acceptance questions → you answer → `approve requirements`
-2. **implement** — Code + tests → `implement-handoff.md` → you `approve` or `/continue-workflow`
+2. **implement** — Code + tests → `implement-handoff.md` → you `approve` or `/dev-pipeline continue`
 3. **verify** — Fresh-eyes scenarios → `verify-report.md` with verdict + "For AI review" → `approve`
 4. **ai_review** — Reviews verify deltas + security/design → `ai-review.md` → `approve`
 5. **comprehension** — 8 questions (or 4 if small diff) → you pass → `approve`
@@ -228,8 +227,8 @@ PASS WITH NOTES
 
 | Problem | Fix |
 |---------|-----|
-| Stuck `status: ai_running` | `/continue-workflow` — recovers if artifact complete; else re-run phase skill |
-| Accidental implicit approve | Use `/continue-workflow refine:` instead; clarify/comprehension/retro never auto-approve |
+| Stuck `status: ai_running` | `/dev-pipeline continue` — recovers if artifact complete; else re-run phase skill |
+| Accidental implicit approve | Use `/dev-pipeline continue refine:` instead; clarify/comprehension/retro never auto-approve |
 | Partial summarize (files left behind) | `/dev-pipeline cleanup` |
 | Active pipeline won't start | `abort` or cleanup first |
 | Wrong diff base | Restart with `--base <branch>` |

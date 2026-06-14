@@ -3,8 +3,8 @@ name: dev-pipeline
 description: >-
   Orchestrates a multi-phase dev workflow (clarify, implement, refine, verify,
   AI review, comprehension, retro, summarize) with human review gates. Use when the user runs
-  /dev-pipeline, starts a dev pipeline, checks pipeline status, or wants structured
-  AI development with checkpoints.
+  /dev-pipeline, /dev-pipeline continue, starts a dev pipeline, checks pipeline status, or wants
+  structured AI development with checkpoints.
 disable-model-invocation: true
 ---
 
@@ -42,16 +42,23 @@ Parse the user's message:
 | `/dev-pipeline status` | Show STATUS.md if present; else report no active pipeline |
 | `/dev-pipeline show artifacts` | List artifact files and last modified |
 | `/dev-pipeline cleanup` | Delete ephemeral pipeline files (artifacts, state.json, STATUS.md) |
-| `/dev-pipeline continue` | Alias for `/continue-workflow` (see **continue-workflow** skill) |
-| `/dev-pipeline continue approve` | Alias for `/continue-workflow approve` |
+| `/dev-pipeline continue` | Resume at gate — **assumes approve** on advance gates, runs next phase (see **Continue workflow**) |
+| `/dev-pipeline continue approve` | Explicit approve + run next phase in one turn |
+| `/dev-pipeline continue refine: <text>` | Set feedback, go to refine phase |
+| `/dev-pipeline continue reject: <text>` | Back to build phase from verify or ai_review gate |
+| `/dev-pipeline continue re-clarify: <text>` | Back to clarify, reset requirements approval |
+| `/dev-pipeline continue abort` | Cancel pipeline and delete ephemeral files |
 | `approve requirements` | Advance clarify → build (see routing table) |
 | `approve` | Advance past current human gate |
 | `refine: <text>` | Set feedback, go to refine phase |
 | `re-clarify: <text>` | Append note, go to clarify, reset requirements approval |
 | `reject: <text>` | Back to build from verify or ai_review gate |
 | `abort` | Cancel pipeline and **delete ephemeral files** (see state-schema cleanup) |
+| `skip-comprehension` | Skip failed comprehension quiz (see **Continue workflow** Step 5) |
 
-If the user answers numbered clarify questions without a command, treat as clarify-phase input (append to requirements draft).
+If the user answers numbered clarify, comprehension, or retro questions without a command, route to the appropriate phase handler.
+
+**Do not** treat bare `continue` as a command — use `/dev-pipeline continue` or `skip-comprehension` explicitly.
 
 ## Start workflow
 
@@ -82,6 +89,141 @@ When entering an AI phase: set `status` to `ai_running`, append history event `p
 
 When completing an AI phase: write the phase artifact, set `status` to `awaiting_human`, append history event `phase_completed`, update `STATUS.md`, present human gate summary, **stop**.
 
+## Continue workflow
+
+Bridge between **isolated phase chats**. Use `/dev-pipeline continue` in a **new agent** when a phase skill finished in another session and you need to review the gate or advance the pipeline.
+
+Phase skills do the work. **Continue orchestrates** — it does not replace them.
+
+### When to use
+
+| Situation | Action |
+|-----------|--------|
+| Phase skill finished; `status` is `awaiting_human` | Run `/dev-pipeline continue` — **approve is assumed** on advance gates |
+| New chat; you already know you approve | `/dev-pipeline continue` or `/dev-pipeline continue approve` |
+| You want a different action | `/dev-pipeline continue refine:` / `reject:` / `re-clarify:` / `abort` |
+| Gate needs input (clarify, comprehension, retro questions) | Present the gate and wait — no auto-approve |
+| Stuck on `ai_running` from a crashed session | Continue with recovery (see Step 1) |
+| Orphaned pipeline files after crash | `/dev-pipeline cleanup` |
+| No active pipeline (`status: idle`) | Tell user to `/dev-pipeline start "<task>"` |
+
+### Inputs (always read first)
+
+1. `.cursor/workflows/state.json`
+2. `.cursor/workflows/STATUS.md`
+3. Relevant artifact for current phase (use paths from `state.artifacts`)
+4. [state-schema.md](state-schema.md) — **routing table and recovery**
+
+### Step 1 — Assess state
+
+Read `state.json`. Handle invalid or stuck state per **Invalid state recovery** in state-schema.md.
+
+**`status: awaiting_human`** — Normal. Go to Step 2.
+
+**`status: ai_running`** — Likely a stuck prior session. If the phase artifact for current `phase` looks complete, set `status` → `awaiting_human`, history `recovered`, update STATUS.md, then Step 2. If incomplete, tell user to re-run the phase skill.
+
+**`status: idle` or missing `state.json`** — No active pipeline. Suggest `/dev-pipeline start "<task>"`.
+
+**`status: done` with `phase: done`** — Pipeline finished. Suggest starting a new pipeline or `/dev-pipeline cleanup` if orphaned files remain.
+
+### Step 2 — Implicit approve vs. present gate
+
+A fresh `/dev-pipeline continue` with **no explicit command** means **approve is assumed** on **advance gates only**. Match command `approve` in the routing table, then Step 4.
+
+**Do NOT auto-approve — present gate and stop:**
+
+- **clarify** — needs explicit `approve requirements`
+- **comprehension** — needs quiz answers, pass, or `skip-comprehension`
+- **retro (questions pending, no retro.md yet)** — needs answers first
+
+If the user message includes an explicit command (`approve`, `refine:`, `reject:`, `re-clarify:`, `skip-comprehension`, `abort`, or numbered quiz/retro answers), skip implicit approve → Step 3.
+
+### Step 3 — Process gate command
+
+Match the command to a row in the **Routing table** in state-schema.md. Apply state changes, then Step 4 with the listed skill.
+
+Special cases:
+
+- **`reject:`** — allowed at **verify** and **ai_review** gates; routes to build phase per `mode`.
+- **`abort`** — cancel and run cleanup (delete ephemeral files per state-schema).
+- **`approve` at comprehension** — only if `comprehension_passed: true` OR `comprehension_skipped: true`.
+
+**After summarize:** Deletes artifacts, `state.json`, and `STATUS.md`. Present completion summary only.
+
+### Step 4 — Run next phase (same turn)
+
+After processing an advance command:
+
+1. Update `state.json` (`phase`, `status: ai_running`, `updated_at`, history)
+2. Rewrite `STATUS.md`
+3. **Immediately follow the next phase skill** (read its SKILL.md and execute)
+4. When that phase completes:
+   - **Normal phases:** set `status: awaiting_human`, append `phase_completed`, update STATUS.md, present human gate — **stop**
+   - **Summarize phase:** follows workflow-summarize close steps — **stop**
+
+Do **not** chain multiple phases in one turn. One gate command → one phase execution → stop.
+
+### Step 5 — Comprehension special case
+
+1. **Questions turn** — comprehension skill generates questions; user answers by number.
+2. **Grade turn** — numbered answers → **workflow-comprehension** (grade). If FAIL, stop; offer `ready` / `retake` or **`skip-comprehension`**.
+3. **Skip turn** — `skip-comprehension` → **workflow-comprehension** (shame mode); then ask for `approve`.
+4. **Pass turn** — `comprehension_passed: true` → user sends `approve` → **workflow-retro**.
+
+If user sends `approve` but neither passed nor skipped, reject and explain options.
+
+If user sends `ready` or `retake` after fail, run comprehension **generate** mode.
+
+### Step 6 — Retro special case
+
+1. **Questions turn** — retro skill asks questions; user answers in follow-up → run **workflow-retro** "on human answers", stop at `approve`.
+2. **Approve turn** — user sends `approve` → **workflow-summarize**.
+
+If retro.md does not exist and message contains answers (not `approve`), treat as retro continuation.
+
+### Gate artifact map
+
+Read paths from `state.artifacts`:
+
+| Phase at gate | Artifact key |
+|---------------|----------------|
+| clarify | `requirements` |
+| implement / bugfix / refine | `implement_handoff` |
+| verify | `verify_report` |
+| ai_review | `ai_review` |
+| comprehension | `comprehension_test` |
+| retro | `retro` (if exists) or questions pending |
+
+### Continue examples
+
+After implement finished elsewhere:
+
+```
+/dev-pipeline continue
+```
+
+Approve is assumed → runs verify → stops at verify gate.
+
+Reject critical ai_review findings:
+
+```
+/dev-pipeline continue reject: auth bypass in middleware — rebuild with proper checks
+```
+
+Skip comprehension after failed quiz:
+
+```
+skip-comprehension
+```
+
+### Continue rules
+
+- **Never** do phase work without reading that phase's skill.
+- **Never** skip `requirements_approved` before build.
+- **Never** modify application code in continue-only turns.
+- Always update both `state.json` and `STATUS.md` on every transition.
+- One gate command → one phase → stop.
+
 ## Abort and cleanup
 
 On `abort` or `/dev-pipeline cleanup`:
@@ -101,9 +243,9 @@ At each `awaiting_human` stop, show:
 5. **Next step** — always name the phase that runs after approval (e.g. "Next step: verify")
 6. **How to proceed** — always present both options:
    - **Approve here:** send `approve` (or `approve requirements` at the clarify gate) in this chat, or
-   - **Open a new agent and run `/continue-workflow`** — this **assumes approve** on advance gates and triggers the next state automatically.
+   - **Open a new agent and run `/dev-pipeline continue`** — this **assumes approve** on advance gates and triggers the next phase automatically.
 
-Do not start the next phase in the same turn unless the user explicitly sent an advance command. Gates that need real input (clarify requirements, comprehension quiz, retro questions) are never auto-approved — see **continue-workflow** skill.
+Do not start the next phase in the same turn unless the user explicitly sent an advance command. Gates that need real input (clarify requirements, comprehension quiz, retro questions) are never auto-approved — see **Continue workflow**.
 
 ## STATUS.md template
 
@@ -174,16 +316,15 @@ Rewrite on every state change:
 | comprehension | workflow-comprehension |
 | retro | workflow-retro |
 | summarize | workflow-summarize |
-| continue / human gate | continue-workflow |
 
 ## Multi-chat pattern (recommended)
 
-Run each **phase skill** in its own chat. When it finishes (`status: awaiting_human`), open a **new chat** and invoke **`/continue-workflow`**. Opening a new agent and running continue **assumes approve** on advance gates — it launches the next phase skill in that turn, then stops. To take a different action, use `/continue-workflow refine:` / `reject:` / `re-clarify:` instead.
+Run each **phase skill** in its own chat. When it finishes (`status: awaiting_human`), open a **new chat** and invoke **`/dev-pipeline continue`**. Opening a new agent and running continue **assumes approve** on advance gates — it launches the next phase skill in that turn, then stops. To take a different action, use `/dev-pipeline continue refine:` / `reject:` / `re-clarify:` instead.
 
 Example:
 
 1. Chat A — `workflow-implement` → stops at gate, names next step (verify)
-2. Chat B — `/continue-workflow` → approve assumed → runs verify → stops at gate, names next step (ai_review)
-3. Chat C — `/continue-workflow` → approve assumed → runs ai_review → stops at gate
+2. Chat B — `/dev-pipeline continue` → approve assumed → runs verify → stops at gate, names next step (ai_review)
+3. Chat C — `/dev-pipeline continue` → approve assumed → runs ai_review → stops at gate
 
 Gates needing input (clarify, comprehension quiz, retro questions) still wait for your answer instead of auto-advancing.

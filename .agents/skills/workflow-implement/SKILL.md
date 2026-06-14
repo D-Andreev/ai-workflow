@@ -20,7 +20,7 @@ Build the feature per approved `requirements.md`.
 
 ## Process
 
-1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides).
+1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides). If not tests exist in codebase, don't implemement any tests.
 2. **TDD red-green cycle** — for each acceptance criterion or behavior slice (work in small steps):
    - **Red** — write a failing test that expresses the expected behavior. Run it using commands from PROJECT.md and confirm it **fails for the right reason** (missing behavior, not a typo or setup error).
    - **Green** — implement the smallest change that makes that test pass. Run it again and confirm **pass**.

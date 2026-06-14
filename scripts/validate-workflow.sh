@@ -103,12 +103,16 @@ else
   log_ok "dev-pipeline has no duplicate routing table"
 fi
 
-continue="$SKILLS_DIR/continue-workflow/SKILL.md"
-dup_continue=$(grep -cE '^\| [a-z_]+ \| `(approve|refine:|reject:)` \|' "$continue" 2>/dev/null || true)
-if [[ "$dup_continue" -gt 0 ]]; then
-  log_fail "continue-workflow still contains duplicate routing table"
+if grep -q "## Continue workflow" "$ORCHESTRATOR"; then
+  log_ok "dev-pipeline contains Continue workflow section"
 else
-  log_ok "continue-workflow defers to state-schema SSOT"
+  log_fail "dev-pipeline missing Continue workflow section"
+fi
+
+if [[ -f "$SKILLS_DIR/continue-workflow/SKILL.md" ]]; then
+  log_fail "continue-workflow skill removed — use /dev-pipeline continue only"
+else
+  log_ok "no separate continue-workflow skill"
 fi
 
 # --- Skill frontmatter ---
