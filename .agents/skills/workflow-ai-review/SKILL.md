@@ -8,52 +8,58 @@ disable-model-invocation: true
 
 # Workflow: AI Review
 
-Principles-based code review. Not a re-run of verify — focus on quality, design, and long-term maintainability.
+Principles-based code review. **Not a re-run of verify** — build on the verify report instead of repeating it.
 
-## Inputs
+## Preconditions
 
-- `.cursor/workflows/artifacts/requirements.md`
-- `.cursor/workflows/artifacts/implement-handoff.md`
-- `.cursor/workflows/artifacts/verify-report.md`
-- `git diff` against base branch
-- `.cursor/workflows/PROJECT.md`
-- `.cursor/workflows/learnings/gotchas.md`
+- `.cursor/workflows/artifacts/verify-report.md` **must exist** with a **Verdict** line.
+- If missing or incomplete, stop and ask orchestrator to re-run verify.
+
+## Inputs (read in this order)
+
+1. `.cursor/workflows/artifacts/verify-report.md` — **verdict, issues, and "For AI review" section**
+2. `.cursor/workflows/artifacts/requirements.md` — only for requirements ai_review must judge (design fit)
+3. `git diff {state.base_branch}...HEAD` — only files/lines tied to verify findings or checklist below
+4. `.cursor/workflows/PROJECT.md` and `.cursor/workflows/learnings/gotchas.md`
+
+Do **not** re-run scenario tests verify already passed unless verify flagged a gap. Do **not** re-read implement-handoff for test results — use verify-report.
 
 ## Stack awareness
 
-First, identify the project's stack (language, frameworks, libraries) from manifests
-(e.g. `package.json`, `go.mod`, `pyproject.toml`, `Cargo.toml`), `.cursor/workflows/PROJECT.md`,
-and existing code conventions. Apply the **idiomatic best practices for that stack** when
-evaluating the checklist below. The categories are language-agnostic; the specific patterns
-you check against come from the detected stack and the project's established conventions.
+Identify the project's stack from manifests and PROJECT.md. Apply idiomatic best practices for that stack.
+
+## Review scope
+
+Review **only**:
+
+1. Items listed under **For AI review** in verify-report.md
+2. Open 🔴/🟡 issues from verify (confirm severity, suggest fix approach — do not fix)
+3. Checklist categories verify cannot cover:
+   - **Security** — auth, secrets, injection, sensitive data
+   - **Design / maintainability** — separation of concerns, API surface, over-abstraction
+   - **Conventions** — error handling, naming, style vs project norms
+
+Skip files and concerns verify already cleared with PASS on scenarios.
 
 ## Review checklist
 
-### Correctness
-- Logic matches requirements
-- Edge cases handled (null/undefined, empty collections, boundary values, timezone/date boundaries)
+### Correctness (delta only)
+- Logic matches requirements for areas verify flagged or listed under "For AI review"
 
 ### Language / project conventions
-- Error and exception handling idiomatic for the stack
-- Data-access and framework usage consistent with existing patterns
-- Clear separation of concerns (entry points/handlers thin; logic in dedicated modules/services)
-- No unnecessary public/exported API surface
-- Follows the project's established style, lint, and formatting rules
+- Error handling idiomatic for the stack
+- Framework usage consistent with existing patterns
+- Handlers thin; logic in dedicated modules
+- No unnecessary public API surface
 
 ### Security
-- Auth checks on protected routes/operations
+- Auth on protected routes/operations
 - No secrets in code
-- Input validation and injection protection where user input is accepted
-- Safe handling of sensitive data
-
-### Tests
-- Meaningful assertions, not trivial
-- Parameterized/table or it-based tests where appropriate for the stack
-- Critical paths covered
+- Input validation where user input is accepted
 
 ### Maintainability
-- Functions/components focused, names clear
-- No over-abstraction or premature generalization
+- Focused functions, clear names
+- No over-abstraction
 - Comments only where non-obvious
 
 ## Output
@@ -63,16 +69,18 @@ Write `.cursor/workflows/artifacts/ai-review.md`:
 ```markdown
 # AI Code Review
 
+**Based on verify verdict:** {PASS | PASS WITH NOTES | FAIL from verify-report}
+
 ## Verdict
 APPROVE | APPROVE WITH NOTES | REQUEST CHANGES
 
 ## Summary
-{2-3 sentences}
+{2-3 sentences — principles and design, not duplicate of verify scenarios}
 
 ## Findings
 
 ### Critical (must fix)
-- ...
+- {file:line — tied to verify delta or security/design checklist}
 
 ### Suggestions (should consider)
 - ...
@@ -80,19 +88,25 @@ APPROVE | APPROVE WITH NOTES | REQUEST CHANGES
 ### Nice to have
 - ...
 
+## Verify overlap avoided
+- {what verify already covered — do not re-litigate}
+
 ## Principles applied
 - {which project patterns were checked}
 
 ## Recommendation
-approve | refine — {one line}
+approve | refine | reject — {one line}
 ```
 
 ## Human gate
 
-Present verdict and critical/suggestion counts. Wait for `approve` or `refine:`.
+Present verdict and critical/suggestion counts. Wait for `approve`, `refine:`, or `reject:`.
+
+`reject:` sends the pipeline back to the **build phase** for a full rebuild (per state-schema routing table).
 
 ## Rules
 
 - Do not modify application code — review only.
+- Do not duplicate verify scenario results — reference verify-report.
 - Distinguish must-fix from nice-to-have.
 - Reference specific files and lines where possible.

@@ -25,16 +25,24 @@ Gather requirements before implementation. **No code changes. No test runs. No f
    - **Scope** — what's in / out
    - **Behavior** — edge cases, error handling, backwards compatibility
    - **Acceptance criteria** — how we know it's done
-   - **Tests** — unit vs e2e, scenarios to cover
+   - **Tests** — unit vs e2e, scenarios to cover (implement and bugfix phases will use TDD red-green cycles for these)
    - **Constraints** — files/packages to touch or avoid, migrations, deploy impact
 4. Stop and wait for human answers. Do not proceed in the same turn.
+
+## Clarify round limits
+
+- Read `state.clarify_rounds` (default 0). Increment by 1 each time you complete a Q&A round (questions asked + answers merged).
+- **Maximum 3 rounds.** When `clarify_rounds` reaches 3:
+  - Do not ask new questions.
+  - Finalize `requirements.md` with explicit **Assumptions** for anything still open.
+  - Tell the human to `approve requirements` or send `re-clarify:` to reset.
 
 ## On human answers
 
 1. Merge answers into `.cursor/workflows/artifacts/requirements.md` using the template below.
 2. Set `requirements_approved` checkbox to unchecked.
-3. Update state: `status` → `awaiting_human`, append history `phase_completed`.
-4. Present summary and ask for `approve requirements` or more answers.
+3. Update state: increment `clarify_rounds`, `status` → `awaiting_human`, append history `phase_completed`.
+4. Present summary and ask for `approve requirements` or more answers (unless max rounds reached).
 
 ## requirements.md template
 
@@ -57,7 +65,7 @@ Gather requirements before implementation. **No code changes. No test runs. No f
 - ...
 
 ## Test expectations
-- ...
+- ... (scenarios that implement/bugfix will drive with TDD red-green cycles)
 
 ## Files / areas likely involved
 - ...

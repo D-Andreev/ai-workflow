@@ -1,0 +1,63 @@
+[
+  {
+    "phase": "clarify",
+    "command": "approve requirements",
+    "next": "build",
+    "skill": "workflow-implement|workflow-bugfix"
+  },
+  {
+    "phase": "implement",
+    "command": "approve",
+    "next": "verify",
+    "skill": "workflow-verify"
+  },
+  {
+    "phase": "bugfix",
+    "command": "approve",
+    "next": "verify",
+    "skill": "workflow-verify"
+  },
+  {
+    "phase": "refine",
+    "command": "approve",
+    "next": "verify",
+    "skill": "workflow-verify"
+  },
+  {
+    "phase": "verify",
+    "command": "approve",
+    "next": "ai_review",
+    "skill": "workflow-ai-review"
+  },
+  {
+    "phase": "verify",
+    "command": "reject:",
+    "next": "build",
+    "skill": "workflow-implement|workflow-bugfix"
+  },
+  {
+    "phase": "ai_review",
+    "command": "approve",
+    "next": "comprehension",
+    "skill": "workflow-comprehension"
+  },
+  {
+    "phase": "ai_review",
+    "command": "reject:",
+    "next": "build",
+    "skill": "workflow-implement|workflow-bugfix"
+  },
+  {
+    "phase": "comprehension",
+    "command": "approve",
+    "next": "retro",
+    "skill": "workflow-retro",
+    "precondition": "comprehension_passed OR comprehension_skipped"
+  },
+  {
+    "phase": "retro",
+    "command": "approve",
+    "next": "summarize",
+    "skill": "workflow-summarize"
+  }
+]

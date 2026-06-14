@@ -21,7 +21,7 @@ Address human feedback from an implement or verify review gate.
 ## Process
 
 1. Read feedback — only change what was requested.
-2. Implement fixes.
+2. Apply fixes. When behavior or tests change, use a **TDD red-green cycle**: write or adjust a failing test (red, run and confirm fail), then minimal code to pass (green, run and confirm pass).
 3. Re-run relevant test and lint/format commands from PROJECT.md.
 4. Update `implement-handoff.md` with a **Refinement log** section:
 

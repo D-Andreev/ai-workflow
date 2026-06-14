@@ -46,14 +46,14 @@ Reflect on the pipeline before durable docs are updated. **Gotchas and PROJECT.m
 | ... | ... |
 
 ## Gotchas for future work
-- {pitfalls and surprises — summarize phase will consolidate into gotchas.md}
+- {pitfalls — summarize consolidates into gotchas.md}
 
 ## Process improvements
 - ...
 ```
 
 2. Update state: `phase` stays `retro`, `status` → `awaiting_human`, append history `phase_completed`.
-3. Ask for `approve` to run **summarize** (updates PROJECT.md/gotchas, deletes artifacts, closes pipeline).
+3. Ask for `approve` to run **summarize** (updates gotchas, deletes artifacts).
 
 Do **not** write to `gotchas.md` or `PROJECT.md` in this phase.
 

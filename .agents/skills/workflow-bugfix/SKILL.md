@@ -2,7 +2,7 @@
 name: workflow-bugfix
 description: >-
   Bug-fix phase of the dev pipeline (bugfix mode). Reproduces the defect, finds
-  root cause, applies the minimal fix, and adds a regression test. Use when
+  root cause, and fixes it with a TDD red-green regression test. Use when
   dev-pipeline phase is bugfix.
 disable-model-invocation: true
 ---
@@ -18,20 +18,22 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 - Read `.cursor/workflows/artifacts/requirements.md`
 - Read `.cursor/workflows/PROJECT.md`
 - Skim `.cursor/workflows/learnings/gotchas.md` for related past defects
+- Use `git diff {state.base_branch}...HEAD` when documenting changes
 
 ## Process
 
 1. **Reproduce** — confirm the bug with a failing test or clear repro steps. If you cannot reproduce, stop and report what's needed before fixing.
 2. **Root cause** — trace to the actual cause, not the symptom. Note where the defect was introduced if discoverable.
-3. **Regression test first** — add/adjust a test that fails because of the bug (red).
-4. **Minimal fix** — apply the smallest change that addresses the root cause and makes the test pass (green). No drive-by refactors.
-5. **Run tests** using commands from PROJECT.md:
+3. **TDD red-green cycle** for the regression:
+   - **Red** — add or adjust a test that fails because of the bug. Run it using commands from PROJECT.md and confirm it **fails for the right reason** (the defect, not a typo or setup error).
+   - **Green** — apply the smallest change that addresses the root cause and makes the test pass. Run it again and confirm **pass**. No drive-by refactors.
+4. **Run tests** using commands from PROJECT.md:
    - Unit tests (required)
    - Lint/format checks if you touched many files or modules
    - Integration or end-to-end tests only if the defect needs that coverage
-6. Fix failures before completing.
-7. Write `.cursor/workflows/artifacts/implement-handoff.md` (template below — same artifact path the rest of the pipeline reads).
-8. Update state: `status` → `awaiting_human`, history `phase_completed`.
+5. Fix failures before completing.
+6. Write `.cursor/workflows/artifacts/implement-handoff.md` (template below — same artifact path the rest of the pipeline reads).
+7. Update state: `status` → `awaiting_human`, history `phase_completed`.
 
 ## implement-handoff.md template (bugfix)
 
@@ -55,8 +57,9 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 |------|--------------|
 | ... | ... |
 
-## Regression test
-- Test added/updated: {path} — fails before fix, passes after
+## TDD red-green cycle
+- **Red:** {path} — {why it failed before the fix}
+- **Green:** same test passes after minimal fix
 
 ## Test results
 - {command from PROJECT.md}: PASS/FAIL — {details if fail}
@@ -86,7 +89,7 @@ Use `refine: <feedback>` to iterate on the fix instead.
 ## Rules
 
 - Fix the root cause, not just the symptom.
-- Always land a regression test that fails before the fix and passes after.
+- Always complete a TDD red-green cycle: run the regression test red (fail on the bug), fix, then run green (pass).
 - Do not expand scope beyond the defect described in requirements.md.
 - Prefer focused diffs; no drive-by refactors.
 - Follow project conventions.

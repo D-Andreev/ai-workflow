@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-workflow/dev-pipeline/state.schema.json",
+  "title": "Dev Pipeline State",
+  "type": "object",
+  "required": [
+    "id",
+    "mode",
+    "task",
+    "phase",
+    "status",
+    "base_branch",
+    "requirements_approved",
+    "clarify_rounds",
+    "created_at",
+    "updated_at",
+    "history",
+    "human_feedback",
+    "comprehension_attempt",
+    "comprehension_passed",
+    "comprehension_skipped",
+    "quiz_mode",
+    "artifacts"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": ["string", "null"], "minLength": 1 },
+    "mode": { "type": "string", "enum": ["feature", "bugfix"] },
+    "task": { "type": ["string", "null"] },
+    "phase": {
+      "type": ["string", "null"],
+      "enum": [
+        "clarify",
+        "implement",
+        "bugfix",
+        "refine",
+        "verify",
+        "ai_review",
+        "comprehension",
+        "retro",
+        "summarize",
+        "done",
+        null
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "ai_running", "awaiting_human", "done", "cancelled"]
+    },
+    "base_branch": { "type": "string", "minLength": 1 },
+    "requirements_approved": { "type": "boolean" },
+    "clarify_rounds": { "type": "number", "minimum": 0, "maximum": 3 },
+    "created_at": { "type": ["string", "null"], "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" },
+    "history": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/historyEvent" }
+    },
+    "human_feedback": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/feedbackEntry" }
+    },
+    "comprehension_attempt": { "type": "number", "minimum": 0 },
+    "comprehension_passed": { "type": "boolean" },
+    "comprehension_skipped": { "type": "boolean" },
+    "quiz_mode": { "type": "string", "enum": ["standard", "light"] },
+    "artifacts": { "$ref": "#/$defs/artifacts" }
+  },
+  "$defs": {
+    "historyEvent": {
+      "type": "object",
+      "required": ["phase", "event", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "phase": { "type": "string" },
+        "event": {
+          "type": "string",
+          "enum": [
+            "started",
+            "phase_started",
+            "phase_completed",
+            "human_approved",
+            "human_refine",
+            "human_reject",
+            "comprehension_skipped",
+            "cancelled",
+            "recovered"
+          ]
+        },
+        "at": { "type": "string", "format": "date-time" },
+        "note": { "type": "string" }
+      }
+    },
+    "feedbackEntry": {
+      "type": "object",
+      "required": ["phase", "text", "at"],
+      "additionalProperties": false,
+      "properties": {
+        "phase": { "type": "string" },
+        "text": { "type": "string" },
+        "at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": [
+        "task",
+        "requirements",
+        "implement_handoff",
+        "verify_report",
+        "ai_review",
+        "comprehension_test",
+        "retro"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "task": { "type": "string", "const": ".cursor/workflows/artifacts/task.md" },
+        "requirements": {
+          "type": "string",
+          "const": ".cursor/workflows/artifacts/requirements.md"
+        },
+        "implement_handoff": {
+          "type": "string",
+          "const": ".cursor/workflows/artifacts/implement-handoff.md"
+        },
+        "verify_report": {
+          "type": "string",
+          "const": ".cursor/workflows/artifacts/verify-report.md"
+        },
+        "ai_review": {
+          "type": "string",
+          "const": ".cursor/workflows/artifacts/ai-review.md"
+        },
+        "comprehension_test": {
+          "type": "string",
+          "const": ".cursor/workflows/artifacts/comprehension-test.md"
+        },
+        "retro": { "type": "string", "const": ".cursor/workflows/artifacts/retro.md" }
+      }
+    }
+  }
+}

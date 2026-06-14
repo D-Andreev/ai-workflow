@@ -1,8 +1,9 @@
 ---
 name: workflow-implement
 description: >-
-  Implementation phase of the dev pipeline. Writes code and runs tests per
-  approved requirements. Use when dev-pipeline phase is implement.
+  Implementation phase of the dev pipeline. Uses TDD red-green cycles to write
+  failing tests first, then minimal code, per approved requirements. Use when
+  dev-pipeline phase is implement.
 disable-model-invocation: true
 ---
 
@@ -15,12 +16,17 @@ Build the feature per approved `requirements.md`.
 - `state.requirements_approved` must be true
 - Read `.cursor/workflows/artifacts/requirements.md`
 - Read `.cursor/workflows/PROJECT.md`
+- Skim `.cursor/workflows/learnings/gotchas.md` for relevant past pitfalls
 
 ## Process
 
 1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides).
-2. Implement the smallest correct change.
-3. Run tests using commands documented in PROJECT.md:
+2. **TDD red-green cycle** — for each acceptance criterion or behavior slice (work in small steps):
+   - **Red** — write a failing test that expresses the expected behavior. Run it using commands from PROJECT.md and confirm it **fails for the right reason** (missing behavior, not a typo or setup error).
+   - **Green** — implement the smallest change that makes that test pass. Run it again and confirm **pass**.
+   - **Refactor** (optional) — clean up while keeping tests green.
+   Repeat until requirements are covered.
+3. Run the full test suite using commands documented in PROJECT.md:
    - Unit tests (required)
    - Lint/format checks if you touched many files or modules
    - Integration or end-to-end tests only if requirements call for that coverage
@@ -40,6 +46,11 @@ Build the feature per approved `requirements.md`.
 | File | What changed |
 |------|--------------|
 | ... | ... |
+
+## TDD red-green cycles
+| Behavior / criterion | Test(s) | Red (fail reason) | Green |
+|----------------------|---------|-------------------|-------|
+| ... | {path} | confirmed fail | pass |
 
 ## Test results
 - {command from PROJECT.md}: PASS/FAIL — {details if fail}
@@ -63,6 +74,8 @@ Present handoff summary. Wait for `approve` or `refine: <feedback>`.
 
 ## Rules
 
+- Use TDD red-green cycles — do not implement behavior before a failing test proves it was missing.
 - Do not expand scope beyond requirements.md.
 - Follow project conventions from PROJECT.md and existing code (naming, patterns, tooling).
 - Prefer focused diffs; no drive-by refactors.
+- Use `git diff {state.base_branch}...HEAD` when summarizing changes in the handoff.

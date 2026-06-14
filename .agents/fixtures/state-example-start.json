@@ -1,0 +1,34 @@
+{
+  "id": "notification-retry-2026-06-13",
+  "mode": "feature",
+  "task": "Add retry logic to notification emails",
+  "phase": "clarify",
+  "status": "ai_running",
+  "base_branch": "origin/main",
+  "requirements_approved": false,
+  "clarify_rounds": 0,
+  "created_at": "2026-06-13T10:00:00.000Z",
+  "updated_at": "2026-06-13T10:00:00.000Z",
+  "history": [
+    {
+      "phase": "clarify",
+      "event": "started",
+      "at": "2026-06-13T10:00:00.000Z",
+      "note": "base_branch=origin/main"
+    }
+  ],
+  "human_feedback": [],
+  "comprehension_attempt": 0,
+  "comprehension_passed": false,
+  "comprehension_skipped": false,
+  "quiz_mode": "standard",
+  "artifacts": {
+    "task": ".cursor/workflows/artifacts/task.md",
+    "requirements": ".cursor/workflows/artifacts/requirements.md",
+    "implement_handoff": ".cursor/workflows/artifacts/implement-handoff.md",
+    "verify_report": ".cursor/workflows/artifacts/verify-report.md",
+    "ai_review": ".cursor/workflows/artifacts/ai-review.md",
+    "comprehension_test": ".cursor/workflows/artifacts/comprehension-test.md",
+    "retro": ".cursor/workflows/artifacts/retro.md"
+  }
+}

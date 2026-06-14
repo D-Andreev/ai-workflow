@@ -17,8 +17,10 @@ Independent verification with fresh eyes. Assume you have **not** seen the imple
 - `.cursor/workflows/artifacts/requirements.md`
 - `.cursor/workflows/artifacts/implement-handoff.md`
 - `.cursor/workflows/PROJECT.md`
-- `git diff` against the base branch
+- `git diff {state.base_branch}...HEAD` (read `base_branch` from `state.json`)
 - The actual code and tests
+
+At the start of this phase, state in the artifact header: **"Fresh-eyes: judgments based on artifacts and diff only."** If you reference implementation-chat reasoning, the report is invalid — rewrite.
 
 ## Process
 
@@ -41,6 +43,8 @@ Independent verification with fresh eyes. Assume you have **not** seen the imple
 ```markdown
 # Verify Report
 
+**Fresh-eyes:** judgments based on artifacts and diff only (`{base_branch}...HEAD`).
+
 ## Verdict
 PASS | PASS WITH NOTES | FAIL
 
@@ -60,6 +64,10 @@ PASS | PASS WITH NOTES | FAIL
 ## Gaps in test coverage
 - ...
 
+## For AI review (do not re-test these unless needed)
+List items ai_review should focus on — open issues, design/security concerns verify cannot judge from tests alone:
+- ...
+
 ## Recommendation
 approve | refine | reject — {one line why}
 ```
@@ -73,3 +81,4 @@ Present verdict and top findings. Wait for `approve`, `refine:`, or `reject:`.
 - Be skeptical — look for missing edge cases called out in requirements, plus auth boundaries, state transitions, validation limits, and error paths.
 - Do not fix code in verify — report issues; refine/implement handles fixes.
 - If verdict is FAIL, set recommendation to `refine` or `reject` clearly.
+- Populate **For AI review** so the next phase does not duplicate scenario testing.
