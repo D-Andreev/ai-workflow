@@ -16,7 +16,7 @@ Example at pipeline start: [../../fixtures/state-example-start.json](../../fixtu
 | `status` | string | `idle`, `ai_running`, `awaiting_human`, `done`, `cancelled` |
 | `base_branch` | string | Git branch for `git diff` / `git diff --stat` (set at start; see **Base branch**) |
 | `requirements_approved` | boolean | Must be true before build phase |
-| `clarify_rounds` | number | Clarify Q&A rounds completed (default 0; max 3 — see **Clarify limits**) |
+| `clarify_rounds` | number | Clarify passes completed (default 0; max 3 — see **Clarify limits**) |
 | `created_at` | ISO string \| null | Pipeline start time |
 | `updated_at` | ISO string \| null | Last state change |
 | `history` | array | `{ phase, event, at, note? }` |
@@ -87,8 +87,9 @@ Build phase name: `implement` when `mode: feature`, `bugfix` when `mode: bugfix`
 
 ## Clarify limits
 
-- Increment `clarify_rounds` each time the clarify skill completes a Q&A round (questions asked + answers merged).
-- **Maximum 3 rounds.** After round 3, produce the best `requirements.md` possible, list remaining assumptions explicitly, and ask for `approve requirements` — do not ask more questions unless the human sends `re-clarify:`.
+- Within a pass, the clarify skill asks **one question at a time** (with a recommended answer), merges each answer into `requirements.md`, then asks the next question.
+- Increment `clarify_rounds` when a clarify **pass** ends — i.e. when the skill presents a summary and waits for `approve requirements` (not after each single Q&A turn).
+- **Maximum 3 passes.** After pass 3, produce the best `requirements.md` possible, list remaining assumptions explicitly, and ask for `approve requirements` — do not ask more questions unless the human sends `re-clarify:`.
 
 ## Routing table (single source of truth)
 

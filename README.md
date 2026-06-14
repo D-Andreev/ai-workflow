@@ -134,7 +134,7 @@ flowchart TD
     start([/dev-pipeline start]) --> clarify
     startbug([/dev-pipeline start-bugfix]) --> clarify
 
-    clarify["<b>clarify</b><br/><i>Ask questions; max 3 rounds.<br/>Build requirements.md</i>"]
+    clarify["<b>clarify</b><br/><i>Grill one Q at a time; max 3 passes.<br/>Build requirements.md</i>"]
     clarify -->|approve requirements| build
 
     subgraph build_phase [build phase - depends on mode]
@@ -182,7 +182,7 @@ flowchart TD
 
 | Phase | Who | What happens |
 |-------|-----|--------------|
-| **clarify** | AI | Numbered questions (max **3 rounds**); builds `requirements.md`. No code. |
+| **clarify** | AI + you | **Grilling session:** one question at a time (with a recommended answer), covering requirements *and* high-level implementation shape. Challenges fuzzy terms against `PROJECT.md` and existing code, stress-tests with scenarios. Updates `requirements.md` after each answer (max **3 passes**). No application code. |
 | **implement** | AI | (feature) Code + tests per requirements. Reads `gotchas.md`. |
 | **bugfix** | AI | (bugfix) Reproduce → regression test → minimal fix. |
 | **refine** | AI | Addresses review feedback. |
@@ -208,6 +208,13 @@ flowchart TD
 | `/dev-pipeline continue` | New agent: resume — approve assumed on advance gates |
 
 Full routing: `.cursor/skills/dev-pipeline/state-schema.md`
+
+### Clarify gate
+
+1. Agent asks **one question** with a **recommended answer** — reply with your answer (or accept the recommendation).
+2. Agent updates `requirements.md` and asks the next question until the design tree for this pass is exhausted.
+3. When the agent presents a summary, reply **`approve requirements`** to advance — or answer more if it asks follow-ups.
+4. Max **3 passes**; after that, open items become explicit **Assumptions** in `requirements.md`. Use `re-clarify:` to reset.
 
 ### Comprehension gate
 
@@ -247,7 +254,7 @@ During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summ
 
 **Task:** `/dev-pipeline start "Add retry logic to notification emails"`
 
-1. **clarify** — Agent asks scope/acceptance questions → you answer → `approve requirements`
+1. **clarify** — Agent grills one question at a time (scope, behavior, implementation shape, tests) with a recommended answer; you reply; repeat until summary → `approve requirements`
 2. **implement** — Code + tests → `implement-handoff.md` → you `approve` or `/dev-pipeline continue`
 3. **verify** — Fresh-eyes scenarios → `verify-report.md` with verdict + "For AI review" → `approve`
 4. **ai_review** — Reviews verify deltas + security/design → `ai-review.md` → `approve`
@@ -258,9 +265,18 @@ During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summ
 **Snippet — requirements.md (after clarify):**
 
 ```markdown
+## Clarifications
+
+| # | Question | Answer | Recommended |
+|---|----------|--------|-------------|
+| 1 | Max retries before giving up? | 3 with exponential backoff | 3 — matches existing job runner cap |
+
 ## Acceptance criteria
 - [ ] Failed sends retry with exponential backoff (max 3)
 - [ ] Idempotent — no duplicate emails on retry
+
+## Implementation approach (high level)
+- Extend `NotificationJob` retry policy; reuse `backoff()` from job runner
 ```
 
 **Snippet — verify-report.md:**

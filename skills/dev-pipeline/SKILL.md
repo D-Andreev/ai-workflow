@@ -56,7 +56,7 @@ Parse the user's message:
 | `abort` | Cancel pipeline and **delete ephemeral files** (see state-schema cleanup) |
 | `skip-comprehension` | Skip failed comprehension quiz (see **Continue workflow** Step 5) |
 
-If the user answers numbered clarify, comprehension, or retro questions without a command, route to the appropriate phase handler.
+If the user answers a clarify question, comprehension quiz, or retro questions without a command, route to the appropriate phase handler.
 
 **Do not** treat bare `continue` as a command — use `/dev-pipeline continue` or `skip-comprehension` explicitly.
 
