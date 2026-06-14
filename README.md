@@ -11,12 +11,22 @@ Clone this repo once, then wire it into each project you work on. Skills are des
 ```bash
 cd /path/to/your-project
 mkdir -p .cursor/workflows/learnings
+
+# skills + fixtures (fixtures path is referenced from dev-pipeline skill docs)
 ln -s ~/src/ai-workflow/skills .cursor/skills
+ln -s ~/src/ai-workflow/fixtures .cursor/fixtures
+
+# seed durable learnings file (summarize rewrites this after each pipeline)
+cp ~/src/ai-workflow/workflows/learnings/gotchas.md .cursor/workflows/learnings/gotchas.md
 ```
 
-Symlinking keeps every project on the same skill bundle. Pull updates in the clone and all linked projects pick them up.
+Symlinking `skills/` and `fixtures/` keeps every project on the same bundle. Pull updates in the clone and all linked projects pick them up.
 
-`workflow-init` (`/dev-pipeline init`) writes `.cursor/workflows/PROJECT.md` in the target repo. Pipeline runs create ephemeral files under `.cursor/workflows/artifacts/` and `.cursor/workflows/state.json`; `learnings/gotchas.md` is updated at the end of each run.
+**Do not hand-write `PROJECT.md`.** Run `/dev-pipeline init` once per repo — it inspects the project and generates `.cursor/workflows/PROJECT.md`. Every phase reads it.
+
+**`gotchas.md`** is per-project durable memory. Copy the starter above (or create an empty file with a `# Gotchas & Learnings` heading). Phases skim it during runs; **summarize** rewrites it at the end of each pipeline.
+
+Ephemeral files (`artifacts/`, `state.json`, `STATUS.md`) are created automatically when you `/dev-pipeline start` — you don't set those up.
 
 ### Copy instead of symlink
 
@@ -24,8 +34,12 @@ If you prefer a frozen copy per project:
 
 ```bash
 cp -r ~/src/ai-workflow/skills .cursor/skills
+cp -r ~/src/ai-workflow/fixtures .cursor/fixtures
 mkdir -p .cursor/workflows/learnings
+cp ~/src/ai-workflow/workflows/learnings/gotchas.md .cursor/workflows/learnings/gotchas.md
 ```
+
+Then run `/dev-pipeline init` to generate `PROJECT.md`.
 
 ### Other agent harnesses
 
@@ -46,13 +60,19 @@ The state machine (`state.json`), routing table (`skills/dev-pipeline/state-sche
 
 ## First-time setup (per repo)
 
-When dropping these skills into a new repo, generate a project-specific `PROJECT.md` first:
+After installation, in the target project:
 
 ```
 /dev-pipeline init
 ```
 
-This inspects the repo and writes `.cursor/workflows/PROJECT.md`. Every pipeline phase reads it.
+This writes `.cursor/workflows/PROJECT.md` from the repo contents. Do not create that file yourself — init keeps it accurate to the stack and layout.
+
+Then start a pipeline:
+
+```
+/dev-pipeline start "<task>"
+```
 
 ## Which command to use?
 
@@ -267,6 +287,7 @@ PASS WITH NOTES
 
 | Path | Purpose |
 |------|---------|
-| `skills/` | Skill definitions (symlink into `.cursor/skills/`) |
-| `fixtures/` | Example `state.json` and golden routing transitions |
+| `skills/` | Skill definitions → symlink to `.cursor/skills/` |
+| `fixtures/` | Example `state.json` shape → symlink to `.cursor/fixtures/` |
+| `workflows/learnings/gotchas.md` | Starter template → copy into each project's `.cursor/workflows/learnings/` |
 | `skills/dev-pipeline/state.schema.json` | JSON Schema for pipeline state |
