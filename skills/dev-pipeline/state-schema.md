@@ -21,10 +21,9 @@ Example at pipeline start: [../../fixtures/state-example-start.json](../../fixtu
 | `updated_at` | ISO string \| null | Last state change |
 | `history` | array | `{ phase, event, at, note? }` |
 | `human_feedback` | array | `{ phase, text, at }` |
-| `comprehension_attempt` | number | Test attempts (default 0) |
-| `comprehension_passed` | boolean | true after passing grade (default false) |
+| `comprehension_attempt` | number | Interview attempts (default 0) |
+| `comprehension_passed` | boolean | true after demonstrating sufficient understanding (default false) |
 | `comprehension_skipped` | boolean | true if human used `skip-comprehension` (default false) |
-| `quiz_mode` | string | `standard` (8–10 questions) or `light` (4–5 questions); set at comprehension entry |
 | `artifacts` | object | Paths to handoff files — **populate on start; do not rename keys** |
 
 ### `artifacts` keys (required on start)
@@ -34,8 +33,7 @@ Example at pipeline start: [../../fixtures/state-example-start.json](../../fixtu
 | `task` | `.cursor/workflows/artifacts/task.md` |
 | `requirements` | `.cursor/workflows/artifacts/requirements.md` |
 | `implement_handoff` | `.cursor/workflows/artifacts/implement-handoff.md` |
-| `verify_report` | `.cursor/workflows/artifacts/verify-report.md` |
-| `ai_review` | `.cursor/workflows/artifacts/ai-review.md` |
+| `review_report` | `.cursor/workflows/artifacts/review-report.md` |
 | `comprehension_test` | `.cursor/workflows/artifacts/comprehension-test.md` |
 | `retro` | `.cursor/workflows/artifacts/retro.md` |
 
@@ -62,10 +60,10 @@ Record the chosen branch in `history` with event `started` and `note: base_branc
 ## Phases
 
 **Feature mode (`mode: feature`):**
-`clarify` → `implement` → `refine` → `verify` → `ai_review` → `comprehension` → `retro` → `summarize` → `done`
+`clarify` → `implement` → `refine` → `review` → `comprehension` → `retro` → `summarize` → `done`
 
 **Bug-fix mode (`mode: bugfix`):**
-`clarify` → `bugfix` → `refine` → `verify` → `ai_review` → `comprehension` → `retro` → `summarize` → `done`
+`clarify` → `bugfix` → `refine` → `review` → `comprehension` → `retro` → `summarize` → `done`
 
 `bugfix` replaces `implement` in the build slot and writes the same `implement-handoff.md` artifact.
 
@@ -80,8 +78,8 @@ Build phase name: `implement` when `mode: feature`, `bugfix` when `mode: bugfix`
 - `phase_completed` — AI work finished, artifact written (or summarize cleanup done)
 - `human_approved` — human advanced
 - `human_refine` — human sent refine feedback
-- `human_reject` — human sent reject (verify or ai_review gate)
-- `comprehension_skipped` — human skipped quiz via `skip-comprehension`
+- `human_reject` — human sent reject (review gate)
+- `comprehension_skipped` — human skipped interview via `skip-comprehension`
 - `cancelled` — aborted or cleaned up
 - `recovered` — stuck `ai_running` repaired (note explains how)
 
@@ -90,6 +88,13 @@ Build phase name: `implement` when `mode: feature`, `bugfix` when `mode: bugfix`
 - Within a pass, the clarify skill asks **one question at a time** (with a recommended answer), merges each answer into `requirements.md`, then asks the next question.
 - Increment `clarify_rounds` when a clarify **pass** ends — i.e. when the skill presents a summary and waits for `approve requirements` (not after each single Q&A turn).
 - **Maximum 3 passes.** After pass 3, produce the best `requirements.md` possible, list remaining assumptions explicitly, and ask for `approve requirements` — do not ask more questions unless the human sends `re-clarify:`.
+
+## Comprehension limits
+
+- Ask **one question at a time** (free text or multiple choice). Grade each answer before asking the next.
+- Cover **functionality**, **code**, and **maintenance** — question count adapts to diff complexity; no fixed quota.
+- Do not ask trivia (ports, line numbers, unrelated config).
+- Increment `comprehension_attempt` when a new attempt starts (`ready` / `retake` after fail).
 
 ## Routing table (single source of truth)
 
@@ -100,20 +105,17 @@ Orchestrator (`dev-pipeline`) **must not duplicate** this table elsewhere. Apply
 | clarify | answers only | — | merge requirements | clarify | workflow-clarify |
 | clarify | `approve requirements` | requirements.md exists | `requirements_approved: true`, history `human_approved` | build | workflow-implement or workflow-bugfix |
 | clarify | `re-clarify:` | — | `requirements_approved: false`, append note | clarify | workflow-clarify |
-| implement | `approve` | — | history `human_approved` | verify | workflow-verify |
+| implement | `approve` | — | history `human_approved` | review | workflow-review |
 | implement | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
-| bugfix | `approve` | — | history `human_approved` | verify | workflow-verify |
+| bugfix | `approve` | — | history `human_approved` | review | workflow-review |
 | bugfix | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
-| refine | `approve` | — | history `human_approved` | verify | workflow-verify |
+| refine | `approve` | — | history `human_approved` | review | workflow-review |
 | refine | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
-| verify | `approve` | — | history `human_approved` | ai_review | workflow-ai-review |
-| verify | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
-| verify | `reject:` | — | append feedback, history `human_reject` | build | workflow-implement or workflow-bugfix |
-| ai_review | `approve` | — | history `human_approved` | comprehension | workflow-comprehension |
-| ai_review | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
-| ai_review | `reject:` | — | append feedback, history `human_reject` | build | workflow-implement or workflow-bugfix |
-| comprehension | numbered answers | questions pending | grade via skill | comprehension | workflow-comprehension (grade) |
-| comprehension | `ready` / `retake` | last attempt failed | — | comprehension | workflow-comprehension (generate) |
+| review | `approve` | — | history `human_approved` | comprehension | workflow-comprehension |
+| review | `refine:` | — | append feedback, history `human_refine` | refine | workflow-refine |
+| review | `reject:` | — | append feedback, history `human_reject` | build | workflow-implement or workflow-bugfix |
+| comprehension | answer to current question | interview in progress | Q&A via skill | comprehension | workflow-comprehension |
+| comprehension | `ready` / `retake` | last attempt failed | — | comprehension | workflow-comprehension |
 | comprehension | `skip-comprehension` | — | `comprehension_skipped: true`, history `comprehension_skipped` | comprehension | workflow-comprehension (shame) |
 | comprehension | `approve` | `comprehension_passed: true` OR `comprehension_skipped: true` | history `human_approved` | retro | workflow-retro |
 | retro | answers only | retro.md not final | merge retro | retro | workflow-retro |

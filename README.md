@@ -125,7 +125,7 @@ Open `STATUS.md` in your editor and refresh after each agent turn.
 1. **Start** — `/dev-pipeline start "<task>"` in one agent
 2. **Continue** — open a **new agent** and run `/dev-pipeline continue`
 
-At each gate, send the command for that step — usually `approve` to advance, or `refine:` (and at verify/ai_review, `reject:`) to iterate. **Recommended:** open a new agent after each phase; fresh context per step usually works better than running the whole pipeline in one chat. On advance gates, bare `/dev-pipeline continue` assumes approve and runs the next phase. Gates that need your input (**clarify**, **comprehension quiz**, **retro questions**) wait for answers — no auto-advance. To stay in the same agent, send the gate command directly.
+At each gate, send the command for that step — usually `approve` to advance, or `refine:` (and at review, `reject:`) to iterate. **Recommended:** open a new agent after each phase; fresh context per step usually works better than running the whole pipeline in one chat. On advance gates, bare `/dev-pipeline continue` assumes approve and runs the next phase. Gates that need your input (**clarify**, **comprehension interview**, **retro questions**) wait for answers — no auto-advance. To stay in the same agent, send the gate command directly.
 
 ## Phases
 
@@ -150,18 +150,13 @@ flowchart TD
     refine["<b>refine</b>"]
     refine --> gate1r{{human gate}}
     gate1r -->|refine:| refine
-    gate1 -->|approve| verify
-    gate1r -->|approve| verify
+    gate1 -->|approve| review
+    gate1r -->|approve| review
 
-    verify["<b>verify</b><br/><i>Fresh-eyes scenarios</i>"] --> gate2{{human gate}}
+    review["<b>review</b><br/><i>Fresh-eyes scenarios + principles review</i>"] --> gate2{{human gate}}
     gate2 -->|refine:| refine
     gate2 -->|reject:| build
-    gate2 -->|approve| ai_review
-
-    ai_review["<b>ai_review</b><br/><i>Principles; builds on verify report</i>"] --> gate3{{human gate}}
-    gate3 -->|refine:| refine
-    gate3 -->|reject:| build
-    gate3 -->|approve| comprehension
+    gate2 -->|approve| comprehension
 
     comprehension["<b>comprehension</b>"] -->|fail / retake| comprehension
     comprehension -->|skip-comprehension| retro
@@ -175,8 +170,8 @@ flowchart TD
     classDef human fill:#fde68a,stroke:#b45309,color:#000;
     classDef ai fill:#bfdbfe,stroke:#1d4ed8,color:#000;
     classDef terminal fill:#d1fae5,stroke:#047857,color:#000;
-    class gate1,gate1r,gate2,gate3,gate4 human;
-    class clarify,implement,bugfix,refine,verify,ai_review,comprehension,retro,summarize ai;
+    class gate1,gate1r,gate2,gate4 human;
+    class clarify,implement,bugfix,refine,review,comprehension,retro,summarize ai;
     class start,startbug,done terminal;
 ```
 
@@ -186,9 +181,8 @@ flowchart TD
 | **implement** | AI | (feature) Code + tests per requirements. Reads `gotchas.md`. |
 | **bugfix** | AI | (bugfix) Reproduce → regression test → minimal fix. |
 | **refine** | AI | Addresses review feedback. |
-| **verify** | AI | Fresh-eyes scenario tests; populates **For AI review** section. |
-| **ai_review** | AI | Principles/security/design — **does not re-run verify scenarios**. |
-| **comprehension** | AI + you | Quiz (**light** 4–5 Q for small diffs, **standard** 8–10 otherwise). Pass >60% or `skip-comprehension`. |
+| **review** | AI | Fresh-eyes scenario tests plus principles/security/design review in one pass → `review-report.md`. |
+| **comprehension** | AI + you | **One question at a time** (free text or multiple choice) until you demonstrate understanding of functionality, code, and maintenance. Question count adapts to the diff. Pass or `skip-comprehension`. |
 | **retro** | AI + you | **Two turns:** reflective questions → your answers → `retro.md` → `approve`. |
 | **summarize** | AI | Consolidate `gotchas.md`, optional `PROJECT.md` update, delete ephemeral files. |
 
@@ -200,9 +194,9 @@ flowchart TD
 | `approve` | Advance to next phase |
 | `refine: <feedback>` | Go to refine |
 | `re-clarify: <note>` | Back to clarify |
-| `reject: <reason>` | Back to build from **verify** or **ai_review** |
-| `ready` / `retake` | After failed comprehension — new test |
-| `skip-comprehension` | Skip quiz unpassed (recorded; alias: `take the shame`) |
+| `reject: <reason>` | Back to build from **review** |
+| `ready` / `retake` | After failed comprehension interview — new attempt |
+| `skip-comprehension` | Skip interview unpassed (recorded; alias: `take the shame`) |
 | `abort` | Cancel and **delete ephemeral files** |
 | `/dev-pipeline cleanup` | Delete orphaned artifacts/state/STATUS |
 | `/dev-pipeline continue` | New agent: resume — approve assumed on advance gates |
@@ -218,9 +212,10 @@ Full routing: `.cursor/skills/dev-pipeline/state-schema.md`
 
 ### Comprehension gate
 
-1. Answer numbered questions in chat.
-2. If you **pass** → `approve` → retro.
-3. If you **fail** → review code → `ready` for retake **or** `skip-comprehension` to proceed (waives quality gate; score recorded).
+1. Agent asks **one question** at a time (free text or multiple choice) about what changed, where it lives in code, and how to maintain it.
+2. Reply with your answer; the agent grades it and asks the next question until satisfied or failed.
+3. If you **pass** → `approve` → retro.
+4. If you **fail** → review code → `ready` for retake **or** `skip-comprehension` to proceed (waives quality gate; recorded).
 
 ### Retro gate (two turns)
 
@@ -241,7 +236,7 @@ Override at start: `/dev-pipeline start "<task>" --base develop`
 
 During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summarize, abort, or cleanup:**
 
-- `task.md`, `requirements.md`, `implement-handoff.md`, `verify-report.md`, `ai-review.md`, `comprehension-test.md`, `retro.md`
+- `task.md`, `requirements.md`, `implement-handoff.md`, `review-report.md`, `comprehension-test.md`, `retro.md`
 
 ## Durable docs (persist)
 
@@ -256,11 +251,10 @@ During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summ
 
 1. **clarify** — Agent grills one question at a time (scope, behavior, implementation shape, tests) with a recommended answer; you reply; repeat until summary → `approve requirements`
 2. **implement** — Code + tests → `implement-handoff.md` → you `approve` or `/dev-pipeline continue`
-3. **verify** — Fresh-eyes scenarios → `verify-report.md` with verdict + "For AI review" → `approve`
-4. **ai_review** — Reviews verify deltas + security/design → `ai-review.md` → `approve`
-5. **comprehension** — 8 questions (or 4 if small diff) → you pass → `approve`
-6. **retro** — Agent asks "Did verify catch what you cared about?" → you answer → `retro.md` → `approve`
-7. **summarize** — Updates gotchas, deletes artifacts
+3. **review** — Fresh-eyes scenarios + principles review → `review-report.md` → `approve`
+4. **comprehension** — One question at a time until understanding is demonstrated → `approve`
+5. **retro** — Agent asks "Did review catch what you cared about?" → you answer → `retro.md` → `approve`
+6. **summarize** — Updates gotchas, deletes artifacts
 
 **Snippet — requirements.md (after clarify):**
 
@@ -279,13 +273,20 @@ During a run, handoffs live in `.cursor/workflows/artifacts/`. **Deleted on summ
 - Extend `NotificationJob` retry policy; reuse `backoff()` from job runner
 ```
 
-**Snippet — verify-report.md:**
+**Snippet — review-report.md:**
 
 ```markdown
 ## Verdict
-PASS WITH NOTES
-## For AI review (do not re-test these unless needed)
-- Confirm backoff config matches existing job runner patterns
+APPROVE WITH NOTES
+
+## Scenario verification
+### Scenarios tested
+| # | Scenario | Method | Result | Notes |
+| 1 | Retry on transient failure | test | pass | ... |
+
+## Principles review
+### Summary
+Backoff config matches existing job runner patterns; auth boundary on retry endpoint looks correct.
 ```
 
 ## Troubleshooting
@@ -297,7 +298,7 @@ PASS WITH NOTES
 | Partial summarize (files left behind) | `/dev-pipeline cleanup` |
 | Active pipeline won't start | `abort` or cleanup first |
 | Wrong diff base | Restart with `--base <branch>` |
-| Comprehension too long for tiny change | Automatic **light** mode (≤3 files, ≤150 lines) |
+| Comprehension feels too long | Agent adapts question count to diff size; answer clearly to move on |
 
 ## Repo layout
 

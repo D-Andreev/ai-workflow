@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 # Workflow: Refine
 
-Address human feedback from an implement or verify review gate.
+Address human feedback from an implement or review gate.
 
 ## Inputs
 
@@ -43,4 +43,4 @@ Summarize what changed vs feedback. Wait for `approve` or `refine: <more feedbac
 ## Rules
 
 - Do not re-litigate requirements — if feedback conflicts with requirements.md, ask the human.
-- Do not start verify or ai_review — orchestrator handles transitions.
+- Do not start review — orchestrator handles transitions.

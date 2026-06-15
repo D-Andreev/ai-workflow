@@ -21,13 +21,11 @@
   "comprehension_attempt": 0,
   "comprehension_passed": false,
   "comprehension_skipped": false,
-  "quiz_mode": "standard",
   "artifacts": {
     "task": ".cursor/workflows/artifacts/task.md",
     "requirements": ".cursor/workflows/artifacts/requirements.md",
     "implement_handoff": ".cursor/workflows/artifacts/implement-handoff.md",
-    "verify_report": ".cursor/workflows/artifacts/verify-report.md",
-    "ai_review": ".cursor/workflows/artifacts/ai-review.md",
+    "review_report": ".cursor/workflows/artifacts/review-report.md",
     "comprehension_test": ".cursor/workflows/artifacts/comprehension-test.md",
     "retro": ".cursor/workflows/artifacts/retro.md"
   }

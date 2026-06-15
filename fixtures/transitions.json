@@ -8,41 +8,29 @@
   {
     "phase": "implement",
     "command": "approve",
-    "next": "verify",
-    "skill": "workflow-verify"
+    "next": "review",
+    "skill": "workflow-review"
   },
   {
     "phase": "bugfix",
     "command": "approve",
-    "next": "verify",
-    "skill": "workflow-verify"
+    "next": "review",
+    "skill": "workflow-review"
   },
   {
     "phase": "refine",
     "command": "approve",
-    "next": "verify",
-    "skill": "workflow-verify"
+    "next": "review",
+    "skill": "workflow-review"
   },
   {
-    "phase": "verify",
-    "command": "approve",
-    "next": "ai_review",
-    "skill": "workflow-ai-review"
-  },
-  {
-    "phase": "verify",
-    "command": "reject:",
-    "next": "build",
-    "skill": "workflow-implement|workflow-bugfix"
-  },
-  {
-    "phase": "ai_review",
+    "phase": "review",
     "command": "approve",
     "next": "comprehension",
     "skill": "workflow-comprehension"
   },
   {
-    "phase": "ai_review",
+    "phase": "review",
     "command": "reject:",
     "next": "build",
     "skill": "workflow-implement|workflow-bugfix"

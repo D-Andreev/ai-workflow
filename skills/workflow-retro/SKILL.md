@@ -22,7 +22,7 @@ Reflect on the pipeline before durable docs are updated. **Gotchas and PROJECT.m
 1. Review the full pipeline history and artifacts.
 2. Ask the human **3–5 reflective questions**, e.g.:
    - Were the clarify questions useful? What was missing?
-   - Did verify catch anything you cared about?
+   - Did review catch anything you cared about?
    - What would you do differently next time?
    - What didn't go well that we should remember?
 3. **Stop and wait** for answers — do not write final retro in the same turn as questions.

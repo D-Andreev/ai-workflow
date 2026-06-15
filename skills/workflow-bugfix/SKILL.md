@@ -72,17 +72,17 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 ## Open questions / risks
 - ... (e.g. other call sites with the same bug)
 
-## Suggested verify scenarios
+## Suggested review scenarios
 1. The original repro no longer fails
 2. Related edge cases / no regressions in ...
 ```
 
 ## Human gate
 
-Present the handoff summary and **name the next step (verify)**. Then offer both options:
+Present the handoff summary and **name the next step (review)**. Then offer both options:
 
 - **Approve here:** reply `approve`, or
-- **Open a new agent and run `/dev-pipeline continue`** — approve is assumed and verify is triggered automatically.
+- **Open a new agent and run `/dev-pipeline continue`** — approve is assumed and review is triggered automatically.
 
 Use `refine: <feedback>` to iterate on the fix instead.
 

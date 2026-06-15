@@ -19,7 +19,6 @@
     "comprehension_attempt",
     "comprehension_passed",
     "comprehension_skipped",
-    "quiz_mode",
     "artifacts"
   ],
   "additionalProperties": false,
@@ -34,8 +33,7 @@
         "implement",
         "bugfix",
         "refine",
-        "verify",
-        "ai_review",
+        "review",
         "comprehension",
         "retro",
         "summarize",
@@ -63,7 +61,6 @@
     "comprehension_attempt": { "type": "number", "minimum": 0 },
     "comprehension_passed": { "type": "boolean" },
     "comprehension_skipped": { "type": "boolean" },
-    "quiz_mode": { "type": "string", "enum": ["standard", "light"] },
     "artifacts": { "$ref": "#/$defs/artifacts" }
   },
   "$defs": {
@@ -107,8 +104,7 @@
         "task",
         "requirements",
         "implement_handoff",
-        "verify_report",
-        "ai_review",
+        "review_report",
         "comprehension_test",
         "retro"
       ],
@@ -123,13 +119,9 @@
           "type": "string",
           "const": ".cursor/workflows/artifacts/implement-handoff.md"
         },
-        "verify_report": {
+        "review_report": {
           "type": "string",
-          "const": ".cursor/workflows/artifacts/verify-report.md"
-        },
-        "ai_review": {
-          "type": "string",
-          "const": ".cursor/workflows/artifacts/ai-review.md"
+          "const": ".cursor/workflows/artifacts/review-report.md"
         },
         "comprehension_test": {
           "type": "string",

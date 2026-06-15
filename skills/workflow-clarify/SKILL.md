@@ -21,7 +21,8 @@ Gather requirements before implementation. **No code changes. No test runs. No f
 
 1. Read all inputs and any releveant code in the project that might be related to the ask.
 2. If requirements are already complete in `requirements.md` with an approval checkbox unchecked, summarize and ask if anything changed — do not re-ask answered questions.
-3. Ask questions one at a time, either multiple choice or free text. Make sure the AI has the same understanding as the human about the task. Based on the answers if they don't continue asking more questions. Ask **10-20 numbered questions** covering :
+3. Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree (both for functionality and implementation). Use when user wants to stress-test a plan, get grilled on their design
+3. Questions covering:
    - **Scope** — what's in / out
    - **Behavior** — edge cases, error handling, backwards compatibility
    - **Acceptance criteria** — how we know it's done
