@@ -110,40 +110,53 @@ At each gate, send the command for that step — usually `approve` to advance, o
 
 ```mermaid
 flowchart TD
-    start(["dev-pipeline start"]) --> clarify
-    startbug(["dev-pipeline start-bugfix"]) --> clarify
+    start(["dev-pipeline start\nNew feature pipeline"])
+    startbug(["dev-pipeline start-bugfix\nNew bugfix pipeline"])
+    start --> clarify
+    startbug --> clarify
 
-    clarify["clarify"] -->|approve requirements| mode
+    clarify["workflow-clarify\nGrill requirements one Q at a time"]
+    clarify -->|approve requirements| mode
 
-    mode{{mode?}}
-    mode -->|feature| implement["implement"]
-    mode -->|bugfix| bugfix["bugfix"]
+    mode{{"mode?\nfeature or bugfix"}}
+    mode -->|feature| implement["workflow-implement\nCode and tests per requirements"]
+    mode -->|bugfix| bugfix["workflow-bugfix\nReproduce, regression test, fix"]
 
     implement --> gate_build
     bugfix --> gate_build
-    gate_build{{build gate}}
-    gate_build -->|refine| refine["refine"]
-    gate_build -->|approve| review["review"]
+    gate_build{{"build gate\nYou: approve or refine"}}
+    gate_build -->|refine| refine["workflow-refine\nApply human feedback"]
+    gate_build -->|approve| review["workflow-review\nScenario tests + code review"]
 
-    refine --> gate_refine{{refine gate}}
+    refine --> gate_refine{{"refine gate\nYou: approve or refine more"}}
     gate_refine -->|refine| refine
     gate_refine -->|approve| review
 
-    review --> gate_review{{review gate}}
+    review --> gate_review{{"review gate\nYou: approve, refine, or reject"}}
     gate_review -->|refine| refine
     gate_review -->|reject| implement
     gate_review -->|reject| bugfix
-    gate_review -->|approve| comprehension["comprehension"]
+    gate_review -->|approve| comprehension["workflow-comprehension\nOne Q at a time on changes"]
 
-    comprehension --> gate_comp{{comprehension gate}}
+    comprehension --> gate_comp{{"comprehension gate\nYou: answer, pass, skip, or retake"}}
     gate_comp -->|next question| comprehension
     gate_comp -->|fail or retake| comprehension
-    gate_comp -->|skip| retro["retro"]
+    gate_comp -->|skip| retro["workflow-retro\nReflect; write retro.md"]
     gate_comp -->|pass| retro
 
-    retro --> gate_retro{{retro gate}}
-    gate_retro -->|approve| summarize["summarize"]
-    summarize --> done(["done"])
+    retro --> gate_retro{{"retro gate\nYou: answer then approve"}}
+    gate_retro -->|approve| summarize["workflow-summarize\nUpdate gotchas; cleanup artifacts"]
+    summarize --> done(["done\nPipeline finished"])
+
+    classDef ai fill:#dbeafe,stroke:#60a5fa,color:#1e3a5f
+    classDef human fill:#fef3c7,stroke:#fbbf24,color:#78350f
+    classDef terminal fill:#ecfdf5,stroke:#6ee7b7,color:#064e3b
+    classDef routing fill:#f3f4f6,stroke:#d1d5db,color:#374151
+
+    class clarify,implement,bugfix,refine,review,comprehension,retro,summarize ai
+    class gate_build,gate_refine,gate_review,gate_comp,gate_retro human
+    class start,startbug,done terminal
+    class mode routing
 ```
 
 | Phase | Who | What happens |
