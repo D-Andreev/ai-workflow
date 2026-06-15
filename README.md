@@ -123,18 +123,21 @@ flowchart TD
     bugfix --> gate_build
     gate_build{{build gate}}
     gate_build -->|refine| refine["refine"]
-    refine --> gate_build2{{build gate}}
-    gate_build2 -->|refine| refine
     gate_build -->|approve| review["review"]
-    gate_build2 -->|approve| review
+
+    refine --> gate_refine{{refine gate}}
+    gate_refine -->|refine| refine
+    gate_refine -->|approve| review
 
     review --> gate_review{{review gate}}
     gate_review -->|refine| refine
-    gate_review -->|reject| gate_build
+    gate_review -->|reject| implement
+    gate_review -->|reject| bugfix
     gate_review -->|approve| comprehension["comprehension"]
 
     comprehension --> gate_comp{{comprehension gate}}
-    gate_comp -->|more questions| comprehension
+    gate_comp -->|next question| comprehension
+    gate_comp -->|fail or retake| comprehension
     gate_comp -->|skip| retro["retro"]
     gate_comp -->|pass| retro
 
