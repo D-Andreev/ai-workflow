@@ -28,28 +28,7 @@ Symlinking `skills/` and `fixtures/` keeps every project on the same bundle. Pul
 
 Ephemeral files (`artifacts/`, `state.json`, `STATUS.md`) are created automatically when you `/dev-pipeline start` — you don't set those up.
 
-### Copy instead of symlink
-
-If you prefer a frozen copy per project:
-
-```bash
-cp -r ~/src/ai-workflow/skills .cursor/skills
-cp -r ~/src/ai-workflow/fixtures .cursor/fixtures
-mkdir -p .cursor/workflows/learnings
-cp ~/src/ai-workflow/workflows/learnings/gotchas.md .cursor/workflows/learnings/gotchas.md
-```
-
 Then run `/dev-pipeline init` to generate `PROJECT.md`.
-
-### Other agent harnesses
-
-These skills assume Cursor’s layout (`.cursor/skills/*/SKILL.md`, slash-command invocation, `disable-model-invocation` frontmatter). To use them elsewhere:
-
-- Map `skills/` to however your harness loads agent instructions
-- Map `.cursor/workflows/` to a durable + ephemeral artifact directory in your project
-- Replace `/dev-pipeline …` triggers with your harness’s equivalent (prompt prefix, slash command, or skill name)
-
-The state machine (`state.json`), routing table (`skills/dev-pipeline/state-schema.md`), and phase handoff markdown files are harness-agnostic — only discovery and invocation need adapting.
 
 ## Skills
 
@@ -79,14 +58,14 @@ Then start a pipeline:
 ```mermaid
 flowchart TD
     q{What are you doing?}
-    q -->|New user-facing capability| feature["/dev-pipeline start \"...\""]
-    q -->|Defect / regression| bugfix["/dev-pipeline start-bugfix \"...\""]
-    q -->|First time in repo| init["/dev-pipeline init"]
-    q -->|Resume after a gate| cont["/dev-pipeline continue"]
-    q -->|Cancel or remove orphan files| clean["abort or /dev-pipeline cleanup"]
+    q -->|New capability| feature[dev-pipeline start]
+    q -->|Bug fix| bugfix[dev-pipeline start-bugfix]
+    q -->|First time in repo| init[dev-pipeline init]
+    q -->|Resume after a gate| cont[dev-pipeline continue]
+    q -->|Cancel pipeline| clean[abort or cleanup]
 
-    feature --> mode_feature[mode: feature → implement phase]
-    bugfix --> mode_bug[mode: bugfix → bugfix phase]
+    feature --> mode_feature[feature mode - implement phase]
+    bugfix --> mode_bug[bugfix mode - bugfix phase]
 ```
 
 | Situation | Command |
@@ -131,48 +110,37 @@ At each gate, send the command for that step — usually `approve` to advance, o
 
 ```mermaid
 flowchart TD
-    start([/dev-pipeline start]) --> clarify
-    startbug([/dev-pipeline start-bugfix]) --> clarify
+    start(["dev-pipeline start"]) --> clarify
+    startbug(["dev-pipeline start-bugfix"]) --> clarify
 
-    clarify["<b>clarify</b><br/><i>Grill one Q at a time; max 3 passes.<br/>Build requirements.md</i>"]
-    clarify -->|approve requirements| build
+    clarify["clarify"] -->|approve requirements| mode
 
-    subgraph build_phase [build phase - depends on mode]
-        build{{mode?}}
-        build -->|feature| implement["<b>implement</b>"]
-        build -->|bugfix| bugfix["<b>bugfix</b>"]
-    end
+    mode{{mode?}}
+    mode -->|feature| implement["implement"]
+    mode -->|bugfix| bugfix["bugfix"]
 
-    implement --> gate1
-    bugfix --> gate1
-    gate1{{human gate}}
-    gate1 -->|refine:| refine
-    refine["<b>refine</b>"]
-    refine --> gate1r{{human gate}}
-    gate1r -->|refine:| refine
-    gate1 -->|approve| review
-    gate1r -->|approve| review
+    implement --> gate_build
+    bugfix --> gate_build
+    gate_build{{build gate}}
+    gate_build -->|refine| refine["refine"]
+    refine --> gate_build2{{build gate}}
+    gate_build2 -->|refine| refine
+    gate_build -->|approve| review["review"]
+    gate_build2 -->|approve| review
 
-    review["<b>review</b><br/><i>Fresh-eyes scenarios + principles review</i>"] --> gate2{{human gate}}
-    gate2 -->|refine:| refine
-    gate2 -->|reject:| build
-    gate2 -->|approve| comprehension
+    review --> gate_review{{review gate}}
+    gate_review -->|refine| refine
+    gate_review -->|reject| gate_build
+    gate_review -->|approve| comprehension["comprehension"]
 
-    comprehension["<b>comprehension</b>"] -->|fail / retake| comprehension
-    comprehension -->|skip-comprehension| retro
-    comprehension -->|pass + approve| retro
+    comprehension --> gate_comp{{comprehension gate}}
+    gate_comp -->|more questions| comprehension
+    gate_comp -->|skip| retro["retro"]
+    gate_comp -->|pass| retro
 
-    retro["<b>retro</b><br/><i>Questions, then retro.md</i>"] --> gate4{{human gate}}
-    gate4 -->|approve| summarize
-
-    summarize["<b>summarize</b>"] --> done([done])
-
-    classDef human fill:#fde68a,stroke:#b45309,color:#000;
-    classDef ai fill:#bfdbfe,stroke:#1d4ed8,color:#000;
-    classDef terminal fill:#d1fae5,stroke:#047857,color:#000;
-    class gate1,gate1r,gate2,gate4 human;
-    class clarify,implement,bugfix,refine,review,comprehension,retro,summarize ai;
-    class start,startbug,done terminal;
+    retro --> gate_retro{{retro gate}}
+    gate_retro -->|approve| summarize["summarize"]
+    summarize --> done(["done"])
 ```
 
 | Phase | Who | What happens |
