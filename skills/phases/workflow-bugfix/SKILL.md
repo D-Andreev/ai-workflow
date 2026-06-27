@@ -5,6 +5,8 @@ description: >-
   root cause, and fixes it with a TDD red-green regression test. Use when
   dev-pipeline phase is bugfix.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Bug Fix

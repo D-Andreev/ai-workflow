@@ -4,6 +4,8 @@ description: >-
   Review phase of the dev pipeline. Fresh-eyes scenario verification plus
   principles-based code review in one pass. Use when dev-pipeline phase is review.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Review

@@ -5,6 +5,8 @@ description: >-
   human reflective questions, and saves learnings. Use when dev-pipeline phase
   is retro.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Retro

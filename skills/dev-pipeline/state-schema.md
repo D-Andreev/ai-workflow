@@ -3,7 +3,7 @@
 File: `.cursor/workflows/state.json`
 
 Machine-readable schema: [state.schema.json](state.schema.json)  
-Example at pipeline start: [../../fixtures/state-example-start.json](../../fixtures/state-example-start.json)
+Example at pipeline start: [fixtures/state-example-start.json](fixtures/state-example-start.json)
 
 ## Fields
 

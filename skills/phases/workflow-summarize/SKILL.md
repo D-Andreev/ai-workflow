@@ -5,6 +5,8 @@ description: >-
   gotchas.md, updates PROJECT.md only for major features, deletes workflow
   artifacts, and closes the pipeline. Use when dev-pipeline phase is summarize.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Summarize
@@ -37,13 +39,13 @@ Ignore task-specific trivia and things already obvious from the code.
 
 ### 2. Update PROJECT.md (major features only)
 
-**Default: do not change PROJECT.md.**
+**Default: do not change PROJECT.md.** Domain language (`## Language`) is updated during **clarify**, not here.
 
-Update only when this workflow delivered a **major** new capability or materially changed how the system works.
+Update **Overview** or **Main Features** only when this workflow delivered a **major** new capability or materially changed how the system works.
 
-**Do not update** for bug fixes, small enhancements, refactors, or workflow tooling changes.
+**Do not update** for bug fixes, small enhancements, refactors, or workflow tooling changes. **Do not rewrite `## Language`** — clarify owns the glossary.
 
-If warranted: one short bullet in the relevant section; keep PROJECT.md under ~50 lines.
+If warranted: one short bullet in the relevant section; keep PROJECT.md concise.
 
 ### 3. Consolidate gotchas.md (rewrite, not append)
 

@@ -5,6 +5,8 @@ description: >-
   failing tests first, then minimal code, per approved requirements. Use when
   dev-pipeline phase is implement.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Implement

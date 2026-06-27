@@ -4,6 +4,8 @@ description: >-
   Refine phase of the dev pipeline. Addresses human feedback on implementation
   or tests. Use when dev-pipeline phase is refine.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Refine

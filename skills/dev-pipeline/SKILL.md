@@ -20,7 +20,7 @@ You are the workflow orchestrator. You do not do phase work yourself — you rou
 |------|---------|
 | `.cursor/workflows/state.json` | Machine state — **created on start, deleted on summarize/abort/cleanup** |
 | `.cursor/workflows/STATUS.md` | Human-readable progress — **created on start, deleted on summarize/abort/cleanup** |
-| `.cursor/workflows/PROJECT.md` | Project context (read every phase) |
+| `.cursor/workflows/PROJECT.md` | Shared context — stack, features, dev commands, and domain glossary (`## Language`) |
 | `.cursor/workflows/artifacts/` | Handoff documents |
 | `.cursor/workflows/learnings/gotchas.md` | Consolidated pitfalls (rewritten each workflow) |
 
@@ -32,8 +32,8 @@ Parse the user's message:
 
 | Input | Action |
 |-------|--------|
-| `/dev-pipeline init` | Generate project-specific `PROJECT.md` (see **workflow-init** skill). Run once per repo before first start |
-| `/dev-pipeline init refresh` | Regenerate `PROJECT.md` even if it exists |
+| `/dev-pipeline init` | One-time project setup — workflow dirs, gotchas.md, PROJECT.md (see **workflow-init** skill) |
+| `/dev-pipeline init refresh` | Regenerate `PROJECT.md` only (does not overwrite gotchas.md) |
 | `/dev-pipeline start "<task>"` | New **feature** pipeline (uses implement phase) from task string |
 | `/dev-pipeline start "<task>" --base <branch>` | Same, with explicit diff base branch |
 | `/dev-pipeline start` | New feature pipeline from `artifacts/task.md` |
@@ -69,7 +69,7 @@ Both `start` (feature) and `start-bugfix` (bug fix) share the same steps; they d
 2. Generate id: `kebab-task-name-YYYY-MM-DD` from task text.
 3. Resolve `base_branch` per [state-schema.md](state-schema.md) (honor `--base` if provided).
 4. Write `artifacts/task.md` with the task description.
-5. Create `state.json` using the full shape from [fixtures/state-example-start.json](../../fixtures/state-example-start.json):
+5. Create `state.json` using the full shape from [fixtures/state-example-start.json](fixtures/state-example-start.json):
    - All required fields including `base_branch`, `clarify_rounds: 0`, `comprehension_skipped: false`
    - Populate `artifacts` with all canonical paths (see state-schema)
    - `mode`: `feature` for `start`, `bugfix` for `start-bugfix`

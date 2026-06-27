@@ -6,6 +6,8 @@ description: >-
   maintain them. Pass or skip-comprehension required before retro. Use when
   dev-pipeline phase is comprehension.
 disable-model-invocation: true
+metadata:
+  internal: true
 ---
 
 # Workflow: Comprehension Test
