@@ -108,7 +108,7 @@ Create `docs/adr/` lazily when the first ADR is needed.
 
 - If `requirements.md` already has clarifications and approval is unchecked, summarize progress and ask if anything changed — do not re-ask answered questions.
 - Read `state.clarify_rounds` (default 0). Increment by 1 each time you complete a Q&A round (questions asked + answers merged into artifacts).
-- **Maximum 3 rounds.** When `clarify_rounds` reaches 3:
+- We don't have max questions specified, ask as much as you need to understand the requirements:
   - Do not ask new questions.
   - Finalize `requirements.md` with explicit **Assumptions** for anything still open.
   - Tell the human to `approve requirements` or send `re-clarify:` to reset.
