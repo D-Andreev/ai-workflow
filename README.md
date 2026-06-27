@@ -46,7 +46,7 @@ This creates `.cursor/workflows/` directories, seeds `learnings/gotchas.md`, and
 
 To regenerate `PROJECT.md` after stack changes: `/dev-pipeline init refresh`
 
-Ephemeral files (`artifacts/`, `state.json`, `STATUS.md`) are created automatically when you start a pipeline.
+Ephemeral files (`artifacts/`, `state.json`, `STATUS.md`) are created automatically when you start a pipeline. Add them to `.gitignore` — see [Gitignore](#gitignore).
 
 ### 3. Start a pipeline
 
@@ -290,6 +290,28 @@ All paths are under `.cursor/workflows/` unless noted.
 | **Setup / init** | Project name, overview, features, stack, dev commands. `## Language` starts empty. |
 | **Clarify** | `## Language` grows term-by-term; optional ADRs in `docs/adr/`. |
 | **Summarize** | Overview or Main Features updated only for **major** new capabilities — not glossary edits. |
+
+## Gitignore
+
+Ephemeral pipeline files are recreated each run and deleted on summarize, abort, or cleanup. **Do not commit them** — add these lines to your project's `.gitignore`:
+
+```gitignore
+# Dev pipeline — ephemeral (deleted on summarize, abort, or cleanup)
+.cursor/workflows/state.json
+.cursor/workflows/STATUS.md
+.cursor/workflows/artifacts/*
+!.cursor/workflows/artifacts/.gitkeep
+```
+
+Init creates `.cursor/workflows/artifacts/.gitkeep` so the directory exists in git while ignoring handoff files inside it.
+
+**Commit** durable workflow docs (shared team context):
+
+| Path | Purpose |
+|------|---------|
+| `.cursor/workflows/PROJECT.md` | Project facts + domain glossary |
+| `.cursor/workflows/learnings/gotchas.md` | Consolidated pitfalls |
+| `docs/adr/` | Architectural decisions (when clarify records them) |
 
 ## End-to-end walkthrough (feature example)
 
