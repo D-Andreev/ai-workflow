@@ -216,14 +216,6 @@ Skip comprehension after failed interview:
 skip-comprehension
 ```
 
-### Continue rules
-
-- **Never** do phase work without reading that phase's skill.
-- **Never** skip `requirements_approved` before build.
-- **Never** modify application code in continue-only turns.
-- Always update both `state.json` and `STATUS.md` on every transition.
-- One gate command → one phase → stop.
-
 ## Abort and cleanup
 
 On `abort` or `/dev-pipeline cleanup`:
@@ -290,13 +282,9 @@ Rewrite on every state change:
 
 - Always read `state.json` first; validate shape against state-schema if fields look wrong.
 - Always read `PROJECT.md` before starting a phase.
-- Never write application code in orchestrator turns — delegate to phase skills.
-- Never skip clarify or requirements approval.
-- Build phases (implement, bugfix, refine when tests change) must follow TDD red-green cycles — do not ship behavior without a failing test first.
-- Apply routing only from state-schema.md.
-- Review phase: enforce fresh-eyes and combined verification + principles review (workflow-review skill).
-- Comprehension: one-question-at-a-time interview until sufficient understanding or explicit `skip-comprehension` before retro.
-- Summarize: consolidates gotchas, deletes ephemeral files.
+- Never do phase work without reading that phase's skill; never write application code in orchestrator turns.
+- Never skip clarify or requirements approval before build.
+- Always update both `state.json` and `STATUS.md` on every transition.
 - Between pipelines: no `state.json` or `STATUS.md` — only durable docs persist.
 
 ## Phase skills

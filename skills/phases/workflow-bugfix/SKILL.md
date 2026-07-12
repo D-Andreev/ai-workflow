@@ -81,12 +81,7 @@ Diagnose and fix the defect per approved `requirements.md`. Replaces the **imple
 
 ## Human gate
 
-Present the handoff summary and **name the next step (review)**. Then offer both options:
-
-- **Approve here:** reply `approve`, or
-- **Open a new agent and run `/dev-pipeline continue`** — approve is assumed and review is triggered automatically.
-
-Use `refine: <feedback>` to iterate on the fix instead.
+Present the handoff summary per dev-pipeline **Human gate presentation**. Wait for `approve` or `refine: <feedback>`.
 
 ## Rules
 

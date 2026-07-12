@@ -104,14 +104,11 @@ If the user accepts, create the ADR in the same turn (before asking the next que
 
 Create `docs/adr/` lazily when the first ADR is needed.
 
-## Resume / round limits
+## Resume / pass tracking
 
 - If `requirements.md` already has clarifications and approval is unchecked, summarize progress and ask if anything changed — do not re-ask answered questions.
-- Read `state.clarify_rounds` (default 0). Increment by 1 each time you complete a Q&A round (questions asked + answers merged into artifacts).
-- We don't have max questions specified, ask as much as you need to understand the requirements:
-  - Do not ask new questions.
-  - Finalize `requirements.md` with explicit **Assumptions** for anything still open.
-  - Tell the human to `approve requirements` or send `re-clarify:` to reset.
+- Track passes via `state.clarify_rounds` — increment per state-schema **Clarify limits** (when a pass ends). There is **no cap on passes or questions** — keep interviewing until mutual understanding is reached.
+- If the human wants to stop before everything is resolved, finalize `requirements.md` with explicit **Assumptions** for anything still open and ask for `approve requirements`.
 
 ## On human answers
 
@@ -120,7 +117,7 @@ Each turn after an answer:
 1. Merge the answer into `.cursor/workflows/artifacts/requirements.md` (template below).
 2. Update `## Language` in `PROJECT.md` if any terms were resolved this turn.
 3. Set `requirements_approved` checkbox to unchecked.
-4. Update state: increment `clarify_rounds` when a round completes, `status` → `awaiting_human`, append history `phase_completed`.
+4. Update state: `status` → `awaiting_human`, append history `phase_completed`; increment `clarify_rounds` only if this turn ended a pass (per state-schema **Clarify limits**).
 5. Ask the **next** grilling question (with recommended answer), **or** present a summary and ask for `approve requirements` if the design tree for this pass is exhausted.
 
 If the task is trivial and fully specified, state that explicitly, produce `requirements.md`, and ask for `approve requirements` with zero questions.

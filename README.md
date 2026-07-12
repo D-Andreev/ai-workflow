@@ -122,7 +122,7 @@ Shared phase reference:
 
 | Phase | Who | What happens |
 |-------|-----|--------------|
-| **clarify** | AI + you | **Grill-with-docs session:** one question at a time (with a recommended answer). Challenges fuzzy terms against `PROJECT.md`, stress-tests with scenarios, cross-checks code. Updates `## Language` in `PROJECT.md` and `requirements.md` as terms resolve (max **3 passes**). May add ADRs to `docs/adr/` for hard-to-reverse decisions. No application code. |
+| **clarify** | AI + you | **Grill-with-docs session:** one question at a time (with a recommended answer). Challenges fuzzy terms against `PROJECT.md`, stress-tests with scenarios, cross-checks code. Updates `## Language` in `PROJECT.md` and `requirements.md` as terms resolve — no pass limit; runs until mutual understanding. May add ADRs to `docs/adr/` for hard-to-reverse decisions. No application code. |
 | **implement** | AI | (feature only) Code + tests per requirements. Reads `PROJECT.md` and `gotchas.md`. |
 | **bugfix** | AI | (bugfix only) Reproduce → regression test → minimal fix. Reads `PROJECT.md` and `gotchas.md`. |
 | **refine** | AI | Addresses review feedback. |
@@ -243,7 +243,7 @@ Full routing: installed `dev-pipeline/state-schema.md` skill file
 1. Agent asks **one question** with a **recommended answer** — reply with your answer (or accept the recommendation).
 2. Agent updates `requirements.md` and sharpens `PROJECT.md` (`## Language`) when domain terms crystallise — one file, no separate `CONTEXT.md`.
 3. When the agent presents a summary, reply **`approve requirements`** to advance — or answer more if it asks follow-ups.
-4. Max **3 passes**; after that, open items become explicit **Assumptions** in `requirements.md`. Use `re-clarify:` to reset.
+4. No pass limit — the interview continues until mutual understanding. If you want to stop early, remaining open items become explicit **Assumptions** in `requirements.md`. Use `re-clarify:` to reset.
 
 ### Comprehension gate
 

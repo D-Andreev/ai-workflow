@@ -22,13 +22,13 @@ Build the feature per approved `requirements.md`.
 
 ## Process
 
-1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides). If not tests exist in codebase, don't implemement any tests.
+1. Plan approach — match existing patterns in the codebase (use PROJECT.md source layout and nearby code as guides). If the repo has no test infrastructure, skip the TDD cycle (step 2): implement without tests and record "no test infrastructure" in the handoff's red-green table.
 2. **TDD red-green cycle** — for each acceptance criterion or behavior slice (work in small steps):
    - **Red** — write a failing test that expresses the expected behavior. Run it using commands from PROJECT.md and confirm it **fails for the right reason** (missing behavior, not a typo or setup error).
    - **Green** — implement the smallest change that makes that test pass. Run it again and confirm **pass**.
    - **Refactor** (optional) — clean up while keeping tests green.
    Repeat until requirements are covered.
-3. Run the full test suite using commands documented in PROJECT.md:
+3. Run the full test suite using commands documented in PROJECT.md (skip if no test infrastructure):
    - Unit tests (required)
    - Lint/format checks if you touched many files or modules
    - Integration or end-to-end tests only if requirements call for that coverage
@@ -72,11 +72,11 @@ Build the feature per approved `requirements.md`.
 
 ## Human gate
 
-Present handoff summary. Wait for `approve` or `refine: <feedback>`.
+Present the handoff summary per dev-pipeline **Human gate presentation**. Wait for `approve` or `refine: <feedback>`.
 
 ## Rules
 
-- Use TDD red-green cycles — do not implement behavior before a failing test proves it was missing.
+- When the repo has test infrastructure, use TDD red-green cycles — do not implement behavior before a failing test proves it was missing.
 - Do not expand scope beyond requirements.md.
 - Follow project conventions from PROJECT.md and existing code (naming, patterns, tooling).
 - Prefer focused diffs; no drive-by refactors.

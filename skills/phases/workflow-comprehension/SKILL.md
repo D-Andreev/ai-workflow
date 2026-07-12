@@ -156,10 +156,4 @@ Triggered by **`skip-comprehension`** (alias: `take the shame`).
 - **Never** advance to retro without `comprehension_passed: true` OR `comprehension_skipped: true`.
 - Be fair but rigorous — partial credit for directionally right answers; follow up when an answer is vague.
 
-## State fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `comprehension_attempt` | number | Interview attempts (increment each start/retake) |
-| `comprehension_passed` | boolean | true only after passing the interview |
-| `comprehension_skipped` | boolean | true after `skip-comprehension` |
+State fields (`comprehension_attempt`, `comprehension_passed`, `comprehension_skipped`) are defined in state-schema.md.

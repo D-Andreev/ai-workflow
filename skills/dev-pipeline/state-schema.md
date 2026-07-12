@@ -16,7 +16,7 @@ Example at pipeline start: [fixtures/state-example-start.json](fixtures/state-ex
 | `status` | string | `idle`, `ai_running`, `awaiting_human`, `done`, `cancelled` |
 | `base_branch` | string | Git branch for `git diff` / `git diff --stat` (set at start; see **Base branch**) |
 | `requirements_approved` | boolean | Must be true before build phase |
-| `clarify_rounds` | number | Clarify passes completed (default 0; max 3 — see **Clarify limits**) |
+| `clarify_rounds` | number | Clarify passes completed (default 0; no max — see **Clarify limits**) |
 | `created_at` | ISO string \| null | Pipeline start time |
 | `updated_at` | ISO string \| null | Last state change |
 | `history` | array | `{ phase, event, at, note? }` |
@@ -85,16 +85,13 @@ Build phase name: `implement` when `mode: feature`, `bugfix` when `mode: bugfix`
 
 ## Clarify limits
 
-- Within a pass, the clarify skill asks **one question at a time** (with a recommended answer), merges each answer into `requirements.md`, then asks the next question.
 - Increment `clarify_rounds` when a clarify **pass** ends — i.e. when the skill presents a summary and waits for `approve requirements` (not after each single Q&A turn).
-- **Maximum 3 passes.** After pass 3, produce the best `requirements.md` possible, list remaining assumptions explicitly, and ask for `approve requirements` — do not ask more questions unless the human sends `re-clarify:`.
+- **No maximum** — the counter is informational; the interview runs until mutual understanding. Conduct is defined in the workflow-clarify skill.
 
 ## Comprehension limits
 
-- Ask **one question at a time** (free text or multiple choice). Grade each answer before asking the next.
-- Cover **functionality**, **code**, and **maintenance** — question count adapts to diff complexity; no fixed quota.
-- Do not ask trivia (ports, line numbers, unrelated config).
 - Increment `comprehension_attempt` when a new attempt starts (`ready` / `retake` after fail).
+- Interview conduct is defined in the workflow-comprehension skill.
 
 ## Routing table (single source of truth)
 
